@@ -1,5 +1,5 @@
 class DendrogramError(Exception):
-    """Base exception for dendrogramlib."""
+    """Base exception for dendroviz."""
 
 
 class ValidationError(DendrogramError):

@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from dendrogramlib import DendrogramGenerator, LayoutOptions
+from dendroviz import DendrogramGenerator, LayoutOptions
 
 
 def write_tree_csv() -> tuple[Path, Path]:
@@ -209,3 +209,35 @@ class ExportTests(unittest.TestCase):
 
         self.assertGreater(labeled_width, plain_width)
         self.assertGreater(labeled_height, plain_height)
+
+    def test_svg_scale_increases_canvas_and_font_size(self) -> None:
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        plain_svg = directory / "plain.svg"
+        scaled_svg = directory / "scaled.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_svg=plain_svg,
+            show_labels=True,
+            options=LayoutOptions(label_mode="leaves", label_orientation="auto"),
+        )
+        generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_svg=scaled_svg,
+            show_labels=True,
+            options=LayoutOptions(label_mode="leaves", label_orientation="auto", svg_scale=2.0),
+        )
+
+        plain_text = plain_svg.read_text(encoding="utf-8")
+        scaled_text = scaled_svg.read_text(encoding="utf-8")
+        plain_width = float(re.search(r'width="([0-9.]+)"', plain_text).group(1))
+        scaled_width = float(re.search(r'width="([0-9.]+)"', scaled_text).group(1))
+
+        self.assertGreater(scaled_width, plain_width * 1.9)
+        self.assertIn('stroke-width: 4.000', scaled_text)
+        self.assertIn('font-size="24.000"', scaled_text)

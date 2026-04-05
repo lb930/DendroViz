@@ -1,8 +1,24 @@
-# dendrogramlib
+# DendroViz
 
-`dendrogramlib` turns a rooted tree input into a scaffolded dendrogram dataset and optional SVG output.
+`DendroViz` turns a rooted tree input into a scaffolded dendrogram dataset and optional SVG output.
 
 It is designed for publication as a reusable Python library, while also including a small CLI for direct file conversion.
+
+The package, CLI, and Python import path are all `dendroviz`.
+
+## Examples
+
+Small radial tree:
+
+![Small radial SVG](build/dummy-small.svg)
+
+Small horizontal split tree:
+
+![Small horizontal split SVG](build/dummy-small-horizontal-split.svg)
+
+Deeper radial tree with palette coloring:
+
+![Deep radial SVG](build/dummy-deep.svg)
 
 ## Features
 
@@ -19,7 +35,7 @@ It is designed for publication as a reusable Python library, while also includin
 ## Installation
 
 ```bash
-pip install dendrogramlib
+pip install dendroviz
 ```
 
 Install the optional Newick parser only if you need it:
@@ -63,7 +79,7 @@ Rules:
 Newick input is also supported when BioPython is installed:
 
 ```python
-from dendrogramlib import DendrogramGenerator
+from dendroviz import DendrogramGenerator
 
 generator = DendrogramGenerator()
 tree = generator.load_tree("examples/tree.nwk", input_format="newick")
@@ -74,7 +90,7 @@ Sibling order is taken from the order children appear in the Newick file.
 ### Python API
 
 ```python
-from dendrogramlib import DendrogramGenerator, LayoutOptions
+from dendroviz import DendrogramGenerator, LayoutOptions
 
 generator = DendrogramGenerator()
 result = generator.generate_tree(
@@ -118,7 +134,7 @@ Try it with the included dummy data:
 ### CLI
 
 ```bash
-dendrogramlib build examples/dummy_deep.csv \
+dendroviz build examples/dummy_deep.csv \
   --input-format csv \
   --tree-layout radial \
   --line-style split \
@@ -136,14 +152,14 @@ dendrogramlib build examples/dummy_deep.csv \
 Example test runs:
 
 ```bash
-PYTHONPATH=src python3 -m dendrogramlib.cli build examples/dummy_small.csv \
+PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
   --tree-layout radial \
   --line-style curved \
   --output-csv build/dummy-small.csv \
   --output-svg build/dummy-small.svg \
   --show-labels
 
-PYTHONPATH=src python3 -m dendrogramlib.cli build examples/dummy_medium.csv \
+PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_medium.csv \
   --tree-layout vertical \
   --line-style split \
   --output-csv build/dummy-medium.csv \
@@ -153,7 +169,7 @@ PYTHONPATH=src python3 -m dendrogramlib.cli build examples/dummy_medium.csv \
   --node-color '#111827' \
   --label-color '#047857'
 
-PYTHONPATH=src python3 -m dendrogramlib.cli build examples/dummy_deep.csv \
+PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --tree-layout radial \
   --line-style split \
   --output-csv build/dummy-deep.csv \
@@ -171,7 +187,7 @@ PYTHONPATH=src python3 -m dendrogramlib.cli build examples/dummy_deep.csv \
 For a cleaner radial tree where only leaf nodes are drawn and only leaves get labels:
 
 ```bash
-PYTHONPATH=src python3 -m dendrogramlib.cli build examples/dummy_deep.csv \
+PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --tree-layout radial \
   --line-style split \
   --output-svg build/dummy-deep.svg \
@@ -204,6 +220,12 @@ You can also increase label size with:
 
 ```bash
   --font-size 18
+```
+
+To enlarge the entire SVG output without changing the tree structure, add:
+
+```bash
+  --scale 2
 ```
 
 You can also set SVG colors globally:

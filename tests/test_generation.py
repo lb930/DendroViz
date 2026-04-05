@@ -8,7 +8,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from dendrogramlib import DendrogramGenerator, LayoutOptions
+from dendroviz import DendrogramGenerator, LayoutOptions
 
 
 def write_sample_tree() -> Path:

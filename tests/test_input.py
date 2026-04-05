@@ -10,8 +10,8 @@ from unittest import mock
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from dendrogramlib.api import DendrogramGenerator
-from dendrogramlib.errors import ValidationError
+from dendroviz.api import DendrogramGenerator
+from dendroviz.errors import ValidationError
 
 
 def write_csv(rows: list[dict[str, str]], headers: list[str] | None = None) -> Path:

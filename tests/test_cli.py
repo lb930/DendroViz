@@ -37,7 +37,7 @@ class CliTests(unittest.TestCase):
             [
                 sys.executable,
                 "-m",
-                "dendrogramlib.cli",
+                "dendroviz.cli",
                 "build",
                 str(input_path),
                 "--tree-layout",
@@ -69,7 +69,7 @@ class CliTests(unittest.TestCase):
             [
                 sys.executable,
                 "-m",
-                "dendrogramlib.cli",
+                "dendroviz.cli",
                 "build",
                 str(input_path),
                 "--tree-layout",
@@ -93,7 +93,7 @@ class CliTests(unittest.TestCase):
             [
                 sys.executable,
                 "-m",
-                "dendrogramlib.cli",
+                "dendroviz.cli",
                 "build",
                 str(input_path),
                 "--input-format",
@@ -123,7 +123,7 @@ class CliTests(unittest.TestCase):
             [
                 sys.executable,
                 "-m",
-                "dendrogramlib.cli",
+                "dendroviz.cli",
                 "build",
                 str(input_path),
                 "--tree-layout",
@@ -143,4 +143,4 @@ class CliTests(unittest.TestCase):
         )
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertIn('font-size="20"', output_svg.read_text(encoding="utf-8"))
+        self.assertIn('font-size="20.000"', output_svg.read_text(encoding="utf-8"))

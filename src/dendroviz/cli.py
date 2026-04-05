@@ -9,7 +9,7 @@ from .models import LayoutOptions
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="dendrogramlib", description="Build dendrogram CSV and SVG output.")
+    parser = argparse.ArgumentParser(prog="dendroviz", description="Build dendrogram CSV and SVG output.")
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_parser = subparsers.add_parser("build", help="Generate dendrogram artifacts from an input tree.")
@@ -25,6 +25,7 @@ def build_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--hide-root-node", action="store_true", help="Hide the root node marker in SVG output.")
     build_parser.add_argument("--label-orientation", choices=["horizontal", "auto"], default="auto")
     build_parser.add_argument("--label-offset", type=float, default=18.0)
+    build_parser.add_argument("--scale", type=float, default=1.0, help="Scale the SVG output size.")
     build_parser.add_argument("--font-size", type=int, default=12)
     build_parser.add_argument("--color-mode", choices=["global", "palette"], default="global")
     build_parser.add_argument("--palette", choices=["default", "pastel", "high_contrast", "earth", "scientific"], default="default")
@@ -63,6 +64,7 @@ def main(argv: list[str] | None = None) -> int:
         label_mode=args.label_mode,
         label_orientation=args.label_orientation,
         label_offset=args.label_offset,
+        svg_scale=args.scale,
         font_size=args.font_size,
         color_mode=args.color_mode,
         palette=args.palette,

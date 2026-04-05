@@ -155,15 +155,23 @@ class SvgExporter:
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         branch_colors = self._branch_colors(result, options)
+        scale = max(options.svg_scale, 0.01)
 
         min_x, min_y, width, height = self._compute_bounds(result.nodes, options, show_labels)
         view_box = f"0 0 {width:.3f} {height:.3f}"
         path_elements = "\n".join(
-            self._svg_path(edge, min_x, min_y, options.margin, self._edge_color(edge, result, options, branch_colors))
+            self._svg_path(
+                edge,
+                min_x,
+                min_y,
+                options.margin,
+                scale,
+                self._edge_color(edge, result, options, branch_colors),
+            )
             for edge in result.edges
         )
         node_elements = "\n".join(
-            self._svg_node(node, min_x, min_y, options, show_labels, result, branch_colors) for node in result.nodes
+            self._svg_node(node, min_x, min_y, options, scale, show_labels, result, branch_colors) for node in result.nodes
         )
 
         svg_content = (
@@ -171,7 +179,7 @@ class SvgExporter:
             f'width="{width:.3f}" height="{height:.3f}" role="img">\n'
             "<title>Dendrogram</title>\n"
             "<style>\n"
-            ".edge { fill: none; stroke-width: 2; stroke-linecap: round; }\n"
+            f".edge {{ fill: none; stroke-width: {2 * scale:.3f}; stroke-linecap: round; }}\n"
             ".node { }\n"
             ".label { font-family: Helvetica, Arial, sans-serif; }\n"
             "</style>\n"
@@ -200,8 +208,9 @@ class SvgExporter:
         max_x += label_padding
         min_y -= label_padding
         max_y += label_padding
-        width = (max_x - min_x) + (options.margin * 2)
-        height = (max_y - min_y) + (options.margin * 2)
+        scale = max(options.svg_scale, 0.01)
+        width = ((max_x - min_x) + (options.margin * 2)) * scale
+        height = ((max_y - min_y) + (options.margin * 2)) * scale
         return min_x, min_y, width, height
 
     def _svg_path(
@@ -210,9 +219,10 @@ class SvgExporter:
         min_x: float,
         min_y: float,
         margin: float,
+        scale: float,
         stroke_color: str,
     ) -> str:
-        transformed = [f"{x - min_x + margin:.3f},{y - min_y + margin:.3f}" for x, y in edge.points]
+        transformed = [f"{((x - min_x + margin) * scale):.3f},{((y - min_y + margin) * scale):.3f}" for x, y in edge.points]
         return f'<path class="edge" stroke="{stroke_color}" d="M {" L ".join(transformed)}" />'
 
     def _svg_node(
@@ -221,20 +231,21 @@ class SvgExporter:
         min_x: float,
         min_y: float,
         options: LayoutOptions,
+        scale: float,
         show_labels: bool,
         result: RenderResult,
         branch_colors: dict[str, str],
     ) -> str:
-        x = node.x - min_x + options.margin
-        y = node.y - min_y + options.margin
+        x = (node.x - min_x + options.margin) * scale
+        y = (node.y - min_y + options.margin) * scale
         parts: list[str] = []
         if self._should_render_node(node, options):
             parts.append(
                 f'<circle class="node" fill="{self._node_color(node, result, options, branch_colors)}" '
-                f'cx="{x:.3f}" cy="{y:.3f}" r="{options.node_radius:.3f}" />'
+                f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}" />'
             )
         if show_labels and self._should_render_label(node, options):
-            parts.append(self._svg_label(node, x, y, options, result, branch_colors))
+            parts.append(self._svg_label(node, x, y, options, scale, result, branch_colors))
         return "\n".join(parts)
 
     def _should_render_node(self, node: TreeNode, options: LayoutOptions) -> bool:
@@ -257,16 +268,17 @@ class SvgExporter:
         x: float,
         y: float,
         options: LayoutOptions,
+        scale: float,
         result: RenderResult,
         branch_colors: dict[str, str],
     ) -> str:
         if node.angle is not None and node.radius is not None and options.label_orientation == "auto":
-            return self._svg_radial_label(node, x, y, options, result, branch_colors)
-        label_x = x + options.node_radius + options.label_offset
+            return self._svg_radial_label(node, x, y, options, scale, result, branch_colors)
+        label_x = x + ((options.node_radius + options.label_offset) * scale)
         label_y = y
         return (
             f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
-            f'font-size="{options.font_size}" fill="{self._label_color(node, result, options, branch_colors)}" '
+            f'font-size="{options.font_size * scale:.3f}" fill="{self._label_color(node, result, options, branch_colors)}" '
             f'dominant-baseline="middle">'
             f"{html.escape(node.label)}</text>"
         )
@@ -277,13 +289,14 @@ class SvgExporter:
         x: float,
         y: float,
         options: LayoutOptions,
+        scale: float,
         result: RenderResult,
         branch_colors: dict[str, str],
     ) -> str:
         assert node.angle is not None
-        radius = (node.radius or 0.0) + options.label_offset
-        label_x = x + (radius - (node.radius or 0.0)) * math.cos(node.angle)
-        label_y = y + (radius - (node.radius or 0.0)) * math.sin(node.angle)
+        radius_delta = options.label_offset * scale
+        label_x = x + (radius_delta * math.cos(node.angle))
+        label_y = y + (radius_delta * math.sin(node.angle))
         rotation = math.degrees(node.angle)
         anchor = "start"
         if math.cos(node.angle) < 0:
@@ -291,7 +304,7 @@ class SvgExporter:
             anchor = "end"
         return (
             f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
-            f'font-size="{options.font_size}" fill="{self._label_color(node, result, options, branch_colors)}" '
+            f'font-size="{options.font_size * scale:.3f}" fill="{self._label_color(node, result, options, branch_colors)}" '
             f'text-anchor="{anchor}" dominant-baseline="middle" '
             f'transform="rotate({rotation:.3f} {label_x:.3f} {label_y:.3f})">'
             f"{html.escape(node.label)}</text>"

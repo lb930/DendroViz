@@ -102,6 +102,7 @@ class LayoutOptions:
     straight_points: int = 24
     node_radius: float = 6.0
     margin: float = 32.0
+    svg_scale: float = 1.0
     font_size: int = 12
     root_fork_fraction: float = 0.35
     show_internal_nodes: bool = True
