@@ -20,6 +20,7 @@ class CsvExporter:
     FIELDNAMES = [
         "type",
         "group",
+        "branch_path",
         "id",
         "parent",
         "child",
@@ -71,6 +72,7 @@ class CsvExporter:
                     {
                         "type": "link",
                         "group": group,
+                        "branch_path": self._branch_path(target, result),
                         "id": edge.edge_id,
                         "parent": edge.source_id,
                         "child": edge.target_id,
@@ -99,6 +101,7 @@ class CsvExporter:
             {
                 "type": "node",
                 "group": self._group_label(node, result),
+                "branch_path": self._branch_path(node, result),
                 "id": node.node_id,
                 "parent": node.parent_id or "",
                 "child": "",
@@ -142,6 +145,9 @@ class CsvExporter:
         if branch is None:
             return result.root.label
         return branch.label
+
+    def _branch_path(self, node: TreeNode, result: RenderResult) -> str:
+        return "|".join(ancestor.label for ancestor in result.tree.path_to_node(node))
 
 
 class SvgExporter:

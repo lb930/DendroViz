@@ -84,6 +84,15 @@ class TreeModel:
             current = self.node_map[current.parent_id]
         return current
 
+    def path_to_node(self, node: TreeNode) -> list[TreeNode]:
+        path: list[TreeNode] = []
+        current: TreeNode | None = node
+        while current is not None:
+            path.append(current)
+            current = self.node_map[current.parent_id] if current.parent_id is not None else None
+        path.reverse()
+        return path
+
 @dataclass(slots=True)
 class EdgePath:
     edge_id: str

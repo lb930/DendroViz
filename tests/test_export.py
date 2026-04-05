@@ -47,7 +47,7 @@ class ExportTests(unittest.TestCase):
         csv_text = output_csv.read_text(encoding="utf-8")
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn(
-            "type,group,id,parent,child,label,index,path,x,y,size,color,depth,tree_layout,line_style",
+            "type,group,branch_path,id,parent,child,label,index,path,x,y,size,color,depth,tree_layout,line_style",
             csv_text,
         )
         self.assertIn("Røot", svg_text)
@@ -72,10 +72,12 @@ class ExportTests(unittest.TestCase):
         node_row = next(row for row in rows if row["type"] == "node" and row["id"] == "a")
 
         self.assertEqual(link_row["group"], "Ä")
+        self.assertEqual(link_row["branch_path"], "Røot|Ä")
         self.assertEqual(link_row["child"], "a")
         self.assertEqual(link_row["path"], "0")
 
         self.assertEqual(node_row["label"], "Ä")
+        self.assertEqual(node_row["branch_path"], "Røot|Ä")
         self.assertEqual(node_row["size"], "6.0")
         self.assertEqual(node_row["depth"], "1")
 
