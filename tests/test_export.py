@@ -350,6 +350,54 @@ class ExportTests(unittest.TestCase):
                 ),
             )
 
+    def test_svg_rejects_non_positive_font_size(self) -> None:
+        """Reject non-positive font sizes before exporting."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "invalid-font-size.svg"
+
+        with self.assertRaises(ValueError):
+            generator.generate_tree(
+                input_path,
+                tree_layout="radial",
+                line_style="split",
+                output_svg=output_svg,
+                show_labels=True,
+                options=LayoutOptions(font_size=0),
+            )
+
+    def test_svg_rejects_negative_label_offset(self) -> None:
+        """Reject negative label offsets before exporting."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "invalid-label-offset.svg"
+
+        with self.assertRaises(ValueError):
+            generator.generate_tree(
+                input_path,
+                tree_layout="radial",
+                line_style="split",
+                output_svg=output_svg,
+                show_labels=True,
+                options=LayoutOptions(label_offset=-1.0),
+            )
+
+    def test_svg_rejects_non_positive_radial_sweep(self) -> None:
+        """Reject non-positive radial sweep values before exporting."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "invalid-radial-sweep.svg"
+
+        with self.assertRaises(ValueError):
+            generator.generate_tree(
+                input_path,
+                tree_layout="radial",
+                line_style="split",
+                output_svg=output_svg,
+                show_labels=True,
+                options=LayoutOptions(radial_sweep_deg=0.0),
+            )
+
     def test_svg_expands_canvas_for_large_labels(self) -> None:
         """Expand the SVG canvas when labels need more room."""
         generator = DendrogramGenerator()

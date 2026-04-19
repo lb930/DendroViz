@@ -358,3 +358,68 @@ class CliTests(unittest.TestCase):
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn('stroke="#e41a1c"', svg_text)
         self.assertIn('stroke="#377eb8"', svg_text)
+
+    def test_cli_warns_when_label_settings_are_ignored(self) -> None:
+        """Warn when label-specific options are set but labels are disabled."""
+        directory, input_path = write_input_csv()
+        output_svg = directory / "labels-disabled.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+                "--font-size",
+                "18",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Labels are disabled", completed.stderr)
+        self.assertIn("--font-size", completed.stderr)
+
+    def test_cli_warns_when_palette_settings_are_ignored_in_global_mode(self) -> None:
+        """Warn when palette settings are set but global color mode is used."""
+        directory, input_path = write_input_csv()
+        output_svg = directory / "palette-global.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+                "--color-mode",
+                "global",
+                "--palette",
+                "set2",
+                "--palette-depth",
+                "2",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("Palette settings", completed.stderr)
+        self.assertIn("--palette", completed.stderr)
+        self.assertIn("--palette-depth", completed.stderr)

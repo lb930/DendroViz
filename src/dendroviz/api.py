@@ -50,7 +50,9 @@ class DendrogramGenerator:
     ) -> RenderResult:
         """Load, lay out, route, and optionally export a tree."""
         resolved_options = options or LayoutOptions()
+        self._validate_options(resolved_options)
         logger.info("Generating tree...")
+        self._log_unused_option_warnings(resolved_options, show_labels)
         logger.info(
             "Generating tree from %s (%s) using %s/%s",
             input_path,
@@ -88,6 +90,59 @@ class DendrogramGenerator:
                 output_svg, result, show_labels, resolved_options
             )
         return result
+
+    def _log_unused_option_warnings(self, options: LayoutOptions, show_labels: bool) -> None:
+        """Warn when the caller sets options that will be ignored."""
+        defaults = LayoutOptions()
+        if not show_labels:
+            label_overrides: list[str] = []
+            if options.label_mode != defaults.label_mode:
+                label_overrides.append("--label-mode")
+            if options.label_orientation != defaults.label_orientation:
+                label_overrides.append("--label-orientation")
+            if options.label_offset != defaults.label_offset:
+                label_overrides.append("--label-offset")
+            if options.font_size != defaults.font_size:
+                label_overrides.append("--font-size")
+            if label_overrides:
+                logger.warning(
+                    "Labels are disabled, so %s have no effect.",
+                    ", ".join(label_overrides),
+                )
+
+        if options.color_mode == "global":
+            palette_overrides: list[str] = []
+            if options.palette != defaults.palette:
+                palette_overrides.append("--palette")
+            if options.palette_depth != defaults.palette_depth:
+                palette_overrides.append("--palette-depth")
+            if palette_overrides:
+                logger.warning(
+                    "Palette settings %s are ignored unless --color-mode palette is set.",
+                    ", ".join(palette_overrides),
+                )
+        else:
+            color_overrides: list[str] = []
+            if options.node_color != defaults.node_color:
+                color_overrides.append("--node-color")
+            if options.edge_color != defaults.edge_color:
+                color_overrides.append("--edge-color")
+            if options.label_color != defaults.label_color:
+                color_overrides.append("--label-color")
+            if color_overrides:
+                logger.warning(
+                    "Global color settings %s are ignored when --color-mode palette is set.",
+                    ", ".join(color_overrides),
+                )
+
+    def _validate_options(self, options: LayoutOptions) -> None:
+        """Reject numeric options that fall outside supported ranges."""
+        if options.font_size <= 0:
+            raise ValueError("font_size must be positive.")
+        if options.label_offset < 0:
+            raise ValueError("label_offset must be non-negative.")
+        if options.radial_sweep_deg <= 0:
+            raise ValueError("radial_sweep_deg must be positive.")
 
     def export_csv(self, path: str | Path, rows: list[dict[str, str | float | int]]) -> Path:
         """Write render rows to CSV."""
