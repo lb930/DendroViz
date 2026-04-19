@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import tempfile
 from collections.abc import Sequence
 from pathlib import Path
@@ -48,4 +49,12 @@ def write_text_file(contents: str, *, filename: str) -> tuple[Path, Path]:
     directory = make_temp_dir()
     path = directory / filename
     path.write_text(contents, encoding="utf-8")
+    return directory, path
+
+
+def write_json_file(contents: object, *, filename: str = "tree.json") -> tuple[Path, Path]:
+    """Write a JSON file and return its directory and path."""
+    directory = make_temp_dir()
+    path = directory / filename
+    path.write_text(json.dumps(contents), encoding="utf-8")
     return directory, path

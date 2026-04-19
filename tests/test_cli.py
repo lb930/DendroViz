@@ -5,7 +5,7 @@ import sys
 import unittest
 from pathlib import Path
 
-from tests.helpers import write_csv_file, write_text_file
+from tests.helpers import write_csv_file, write_json_file, write_text_file
 
 
 def write_input_csv() -> tuple[Path, Path]:
@@ -109,6 +109,68 @@ class CliTests(unittest.TestCase):
 
         self.assertNotEqual(completed.returncode, 0)
         self.assertIn("BioPython", completed.stderr)
+
+    def test_cli_accepts_json_input_format_flag(self) -> None:
+        """Accept the JSON input-format flag."""
+        directory, input_path = write_json_file(
+            [
+                {"id": "root", "parent": None, "label": "Root", "order": 0},
+                {"id": "child", "parent": "root", "label": "Child", "order": 0},
+            ],
+            filename="input.json",
+        )
+        output_svg = directory / "out.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--input-format",
+                "json",
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertTrue(output_svg.exists())
+
+    def test_cli_can_write_json_output(self) -> None:
+        """Write rendered JSON output from the CLI."""
+        directory, input_path = write_input_csv()
+        output_json = directory / "render.json"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-json",
+                str(output_json),
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertTrue(output_json.exists())
 
     def test_cli_accepts_font_size_flag(self) -> None:
         """Accept the font-size flag and apply it to SVG output."""

@@ -19,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
         "build", help="Generate dendrogram artifacts from an input tree."
     )
     build_parser.add_argument("input_path", help="Path to the input tree file.")
-    build_parser.add_argument("--input-format", choices=["csv", "newick"], default="csv")
+    build_parser.add_argument("--input-format", choices=["csv", "newick", "json"], default="csv")
     build_parser.add_argument(
         "--tree-layout", choices=["radial", "vertical", "horizontal"], required=True
     )
@@ -27,6 +27,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--line-style", choices=["curved", "split", "straight"], required=True
     )
     build_parser.add_argument("--output-csv", help="Path to write the render-ready CSV.")
+    build_parser.add_argument("--output-json", help="Path to write the rendered JSON output.")
     build_parser.add_argument("--output-svg", help="Path to write the SVG output.")
     build_parser.add_argument(
         "--show-labels", action="store_true", help="Show labels in SVG output."
@@ -71,8 +72,10 @@ def main(argv: list[str] | None = None) -> int:
     if args.command != "build":
         parser.error("Unsupported command.")
 
-    if args.output_csv is None and args.output_svg is None:
-        parser.error("At least one of --output-csv or --output-svg must be provided.")
+    if args.output_csv is None and args.output_json is None and args.output_svg is None:
+        parser.error(
+            "At least one of --output-csv, --output-json, or --output-svg must be provided."
+        )
 
     options = LayoutOptions(
         depth_spacing=args.depth_spacing,
@@ -102,6 +105,7 @@ def main(argv: list[str] | None = None) -> int:
             line_style=args.line_style,
             input_format=args.input_format,
             output_csv=args.output_csv,
+            output_json=args.output_json,
             output_svg=args.output_svg,
             show_labels=args.show_labels,
             options=options,
