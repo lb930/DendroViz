@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from dendroviz import DendrogramGenerator, LayoutOptions
+from dendroviz.errors import ValidationError
 from tests.helpers import write_csv_file
 
 
@@ -123,6 +124,44 @@ class ExportTests(unittest.TestCase):
         self.assertNotIn("Røot</text>", svg_text)
         self.assertIn("<path", svg_text)
 
+    def test_horizontal_svg_places_labels_outside_the_tree(self) -> None:
+        """Place horizontal internal labels above their nodes."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "horizontal.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="horizontal",
+            line_style="curved",
+            output_svg=output_svg,
+            show_labels=True,
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('text-anchor="middle"', svg_text)
+        self.assertIn('>Røot</text>', svg_text)
+
+    def test_horizontal_svg_leaf_labels_use_right_alignment(self) -> None:
+        """Place horizontal leaf labels to the right of the nodes."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "horizontal-leaves.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="horizontal",
+            line_style="curved",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(label_mode="leaves", show_internal_nodes=False),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertNotIn(">Røot</text>", svg_text)
+        self.assertIn('text-anchor="start"', svg_text)
+        self.assertNotIn('text-anchor="middle"', svg_text)
+
     def test_svg_can_hide_internal_nodes_and_show_leaf_labels_only(self) -> None:
         """Hide internal markers while still rendering leaf labels."""
         generator = DendrogramGenerator()
@@ -210,10 +249,55 @@ class ExportTests(unittest.TestCase):
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
-        self.assertIn('stroke="#0072b2"', svg_text)
-        self.assertIn('stroke="#d55e00"', svg_text)
-        self.assertIn('fill="#0072b2"', svg_text)
-        self.assertIn('fill="#d55e00"', svg_text)
+        self.assertIn('stroke="#e69f00"', svg_text)
+        self.assertIn('stroke="#56b4e9"', svg_text)
+        self.assertIn('fill="#e69f00"', svg_text)
+        self.assertIn('fill="#56b4e9"', svg_text)
+
+    def test_svg_accepts_custom_palette_sequences(self) -> None:
+        """Accept a custom palette sequence and cycle it across branches."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "custom-palette.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(
+                color_mode="palette",
+                palette=["#112233", "#445566"],
+                label_mode="leaves",
+            ),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('stroke="#112233"', svg_text)
+        self.assertIn('stroke="#445566"', svg_text)
+        self.assertIn('fill="#112233"', svg_text)
+        self.assertIn('fill="#445566"', svg_text)
+
+    def test_svg_rejects_invalid_palette_colors(self) -> None:
+        """Reject invalid custom palette colors before exporting."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "invalid-palette.svg"
+
+        with self.assertRaises(ValidationError):
+            generator.generate_tree(
+                input_path,
+                tree_layout="radial",
+                line_style="split",
+                output_svg=output_svg,
+                show_labels=True,
+                options=LayoutOptions(
+                    color_mode="palette",
+                    palette=["#112233", "not-a-color"],
+                    label_mode="leaves",
+                ),
+            )
 
     def test_svg_expands_canvas_for_large_labels(self) -> None:
         """Expand the SVG canvas when labels need more room."""

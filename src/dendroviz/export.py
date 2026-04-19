@@ -3,18 +3,130 @@ import html
 import json
 import logging
 import math
+import re
+from collections.abc import Sequence
 from pathlib import Path
 
+from .errors import ValidationError
 from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
 
 logger = logging.getLogger(__name__)
 
+SET1_PALETTE = [
+    "#e41a1c",
+    "#377eb8",
+    "#4daf4a",
+    "#984ea3",
+    "#ff7f00",
+    "#ffff33",
+    "#a65628",
+    "#f781bf",
+    "#999999",
+]
+
 PALETTES = {
-    "default": ["#2563eb", "#dc2626", "#16a34a", "#ca8a04", "#9333ea", "#0891b2"],
-    "pastel": ["#7dd3fc", "#f9a8d4", "#86efac", "#fde68a", "#c4b5fd", "#fdba74"],
-    "high_contrast": ["#1d4ed8", "#b91c1c", "#15803d", "#a16207", "#7e22ce", "#0f766e"],
-    "earth": ["#6b8e23", "#8b5e3c", "#c2410c", "#4d7c0f", "#7c2d12", "#57534e"],
-    "scientific": ["#0072b2", "#d55e00", "#009e73", "#cc79a7", "#e69f00", "#56b4e9"],
+    "set1": SET1_PALETTE,
+    "set2": [
+        "#66c2a5",
+        "#fc8d62",
+        "#8da0cb",
+        "#e78ac3",
+        "#a6d854",
+        "#ffd92f",
+        "#e5c494",
+        "#b3b3b3",
+    ],
+    "set3": [
+        "#8dd3c7",
+        "#ffffb3",
+        "#bebada",
+        "#fb8072",
+        "#80b1d3",
+        "#fdb462",
+        "#b3de69",
+        "#fccde5",
+        "#d9d9d9",
+        "#bc80bd",
+        "#ccebc5",
+        "#ffed6f",
+    ],
+    "pastel1": [
+        "#fbb4ae",
+        "#b3cde3",
+        "#ccebc5",
+        "#decbe4",
+        "#fed9a6",
+        "#ffffcc",
+        "#e5d8bd",
+        "#fddaec",
+        "#f2f2f2",
+    ],
+    "pastel2": [
+        "#b3e2cd",
+        "#fdcdac",
+        "#cbd5e8",
+        "#f4cae4",
+        "#e6f5c9",
+        "#fff2ae",
+        "#f1e2cc",
+        "#cccccc",
+    ],
+    "accent": [
+        "#7fc97f",
+        "#beaed4",
+        "#fdc086",
+        "#ffff99",
+        "#386cb0",
+        "#f0027f",
+        "#bf5b17",
+        "#666666",
+    ],
+    "paired": [
+        "#a6cee3",
+        "#1f78b4",
+        "#b2df8a",
+        "#33a02c",
+        "#fb9a99",
+        "#e31a1c",
+        "#fdbf6f",
+        "#ff7f00",
+        "#cab2d6",
+        "#6a3d9a",
+        "#ffff99",
+        "#b15928",
+    ],
+    "tableau": [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+    ],
+    "dark2": [
+        "#1b9e77",
+        "#d95f02",
+        "#7570b3",
+        "#e7298a",
+        "#66a61e",
+        "#e6ab02",
+        "#a6761d",
+        "#666666",
+    ],
+    "scientific": [
+        "#e69f00",
+        "#56b4e9",
+        "#009e73",
+        "#f0e442",
+        "#0072b2",
+        "#d55e00",
+        "#cc79a7",
+        "#000000",
+    ],
 }
 
 
@@ -22,11 +134,53 @@ def branch_colors_for(result: RenderResult, options: LayoutOptions) -> dict[str,
     """Build per-branch colors when palette mode is enabled."""
     if options.color_mode != "palette":
         return {}
-    palette = PALETTES[options.palette]
+    palette = resolve_palette_colors(options.palette)
     return {
         child.node_id: palette[index % len(palette)]
         for index, child in enumerate(result.root.children)
     }
+
+
+def resolve_palette_colors(palette_spec: object) -> list[str]:
+    """Resolve a palette specification into validated hex colors."""
+    if isinstance(palette_spec, str):
+        candidate = palette_spec.strip()
+        palette = PALETTES.get(candidate.lower())
+        if palette is None:
+            palette = _split_palette_string(candidate)
+    elif isinstance(palette_spec, Sequence):
+        palette = list(palette_spec)
+    else:
+        raise ValidationError(
+            "Palette must be a named palette or a sequence of hex color strings."
+        )
+
+    resolved = [_normalize_hex_color(color, index) for index, color in enumerate(palette, start=1)]
+    if not resolved:
+        raise ValidationError("Palette must contain at least one color.")
+    return resolved
+
+
+def _split_palette_string(palette_spec: str) -> list[str]:
+    """Split a textual palette specification into color strings."""
+    tokens = [token for token in re.split(r"[\s,]+", palette_spec) if token]
+    if not tokens:
+        raise ValidationError("Palette string cannot be empty.")
+    return tokens
+
+
+def _normalize_hex_color(color: object, index: int) -> str:
+    """Validate and normalize a hex color string."""
+    if not isinstance(color, str):
+        raise ValidationError(f"Palette color {index} must be a string.")
+    candidate = color.strip()
+    if candidate.startswith("#"):
+        candidate = candidate[1:]
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", candidate):
+        raise ValidationError(
+            f"Palette color {index} must be a hex color in #RRGGBB format: {color!r}"
+        )
+    return f"#{candidate.lower()}"
 
 
 class CsvExporter:
@@ -419,8 +573,28 @@ class SvgExporter:
                 f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}" />'
             )
         if show_labels and self._should_render_label(node, options):
-            parts.append(self._svg_label(node, x, y, options, scale, result, branch_colors))
+            parts.append(
+                self._svg_label(
+                    node,
+                    x,
+                    y,
+                    options,
+                    scale,
+                    result,
+                    branch_colors,
+                    self._layout_for_node(node, result),
+                )
+            )
         return "\n".join(parts)
+
+    def _layout_for_node(self, node: TreeNode, result: RenderResult) -> str:
+        """Infer the rendered tree layout from a node's coordinates."""
+        if node.angle is not None and node.radius is not None:
+            return "radial"
+        root = result.root
+        if abs(root.y - node.y) > abs(root.x - node.x):
+            return "vertical"
+        return "horizontal"
 
     def _should_render_node(self, node: TreeNode, options: LayoutOptions) -> bool:
         """Return whether the node marker should be rendered."""
@@ -447,6 +621,7 @@ class SvgExporter:
         scale: float,
         result: RenderResult,
         branch_colors: dict[str, str],
+        tree_layout: str,
     ) -> str:
         """Render a non-radial SVG label."""
         label_color = self._label_color(node, result, options, branch_colors)
@@ -463,12 +638,23 @@ class SvgExporter:
                 scale,
                 label_color,
             )
-        label_x = x + ((options.node_radius + options.label_offset) * scale)
-        label_y = y
+        if tree_layout == "horizontal":
+            if node.is_leaf or options.label_mode == "leaves":
+                label_x = x + ((options.node_radius + options.label_offset) * scale)
+                label_y = y
+                anchor = "start"
+            else:
+                label_x = x
+                label_y = y - ((options.node_radius + options.label_offset) * scale)
+                anchor = "middle"
+        else:
+            label_x = x + ((options.node_radius + options.label_offset) * scale)
+            label_y = y
+            anchor = "start"
         return (
             f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
             f'font-size="{options.font_size * scale:.3f}" fill="{label_color}" '
-            f'dominant-baseline="middle">'
+            f'text-anchor="{anchor}" dominant-baseline="middle">'
             f"{html.escape(node.label)}</text>"
         )
 
