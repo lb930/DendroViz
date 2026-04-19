@@ -2,30 +2,28 @@ from __future__ import annotations
 
 import csv
 import re
-import sys
-import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
 from dendroviz import DendrogramGenerator, LayoutOptions
+from tests.helpers import write_csv_file
 
 
 def write_tree_csv() -> tuple[Path, Path]:
-    directory = Path(tempfile.mkdtemp())
-    input_path = directory / "tree.csv"
-    with input_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["id", "parent", "label", "order"])
-        writer.writerow(["root", "", "Røot", "0"])
-        writer.writerow(["a", "root", "Ä", "0"])
-        writer.writerow(["b", "root", "Bee", "1"])
-    return directory, input_path
+    """Write a sample tree CSV used by export tests."""
+    return write_csv_file(
+        [
+            ["root", "", "Røot", "0"],
+            ["a", "root", "Ä", "0"],
+            ["b", "root", "Bee", "1"],
+        ],
+        headers=["id", "parent", "label", "order"],
+    )
 
 
 class ExportTests(unittest.TestCase):
     def test_writes_csv_and_svg(self) -> None:
+        """Write both CSV and SVG outputs for a sample tree."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_csv = directory / "render.csv"
@@ -54,6 +52,7 @@ class ExportTests(unittest.TestCase):
         self.assertIn("<circle", svg_text)
 
     def test_csv_uses_layered_viz_schema(self) -> None:
+        """Emit CSV rows that match the layered-viz schema."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_csv = directory / "render.csv"
@@ -82,6 +81,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(node_row["depth"], "1")
 
     def test_svg_hides_labels_when_disabled(self) -> None:
+        """Suppress SVG labels when label rendering is disabled."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "render.svg"
@@ -99,6 +99,7 @@ class ExportTests(unittest.TestCase):
         self.assertIn("<path", svg_text)
 
     def test_svg_can_hide_internal_nodes_and_show_leaf_labels_only(self) -> None:
+        """Hide internal markers while still rendering leaf labels."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "leaf-only.svg"
@@ -118,6 +119,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(svg_text.count("<circle"), 3)
 
     def test_svg_can_hide_root_node_separately(self) -> None:
+        """Hide the root marker without affecting leaf markers."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "no-root.svg"
@@ -129,7 +131,9 @@ class ExportTests(unittest.TestCase):
             output_svg=output_svg,
             show_labels=True,
             options=LayoutOptions(
-                show_internal_nodes=False, show_root_node=False, label_mode="leaves"
+                show_internal_nodes=False,
+                show_root_node=False,
+                label_mode="leaves",
             ),
         )
 
@@ -137,6 +141,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(svg_text.count("<circle"), 2)
 
     def test_svg_radial_leaf_labels_use_rotation_and_custom_colors(self) -> None:
+        """Rotate radial labels and apply custom colors."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "styled.svg"
@@ -163,6 +168,7 @@ class ExportTests(unittest.TestCase):
         self.assertIn('transform="rotate(', svg_text)
 
     def test_svg_palette_mode_colors_top_level_branches_automatically(self) -> None:
+        """Color top-level branches automatically in palette mode."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "palette.svg"
@@ -173,7 +179,9 @@ class ExportTests(unittest.TestCase):
             line_style="split",
             output_svg=output_svg,
             show_labels=True,
-            options=LayoutOptions(color_mode="palette", palette="scientific", label_mode="leaves"),
+            options=LayoutOptions(
+                color_mode="palette", palette="scientific", label_mode="leaves"
+            ),
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
@@ -183,6 +191,7 @@ class ExportTests(unittest.TestCase):
         self.assertIn('fill="#d55e00"', svg_text)
 
     def test_svg_expands_canvas_for_large_labels(self) -> None:
+        """Expand the SVG canvas when labels need more room."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         plain_svg = directory / "plain.svg"
@@ -202,7 +211,10 @@ class ExportTests(unittest.TestCase):
             output_svg=labeled_svg,
             show_labels=True,
             options=LayoutOptions(
-                label_mode="leaves", label_orientation="auto", label_offset=36, font_size=20
+                label_mode="leaves",
+                label_orientation="auto",
+                label_offset=36,
+                font_size=20,
             ),
         )
 
@@ -217,6 +229,7 @@ class ExportTests(unittest.TestCase):
         self.assertGreater(labeled_height, plain_height)
 
     def test_svg_scale_increases_canvas_and_font_size(self) -> None:
+        """Scale the SVG canvas and font sizes together."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         plain_svg = directory / "plain.svg"
@@ -236,7 +249,11 @@ class ExportTests(unittest.TestCase):
             line_style="split",
             output_svg=scaled_svg,
             show_labels=True,
-            options=LayoutOptions(label_mode="leaves", label_orientation="auto", svg_scale=2.0),
+            options=LayoutOptions(
+                label_mode="leaves",
+                label_orientation="auto",
+                svg_scale=2.0,
+            ),
         )
 
         plain_text = plain_svg.read_text(encoding="utf-8")

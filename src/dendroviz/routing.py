@@ -7,6 +7,7 @@ from .models import EdgePath, LayoutOptions, LineStyle, TreeLayout, TreeModel, T
 
 class EdgeRouter:
     def __init__(self, options: LayoutOptions) -> None:
+        """Create an edge router with the given layout options."""
         self.options = options
 
     def build_paths(
@@ -15,6 +16,7 @@ class EdgeRouter:
         tree_layout: TreeLayout,
         line_style: LineStyle,
     ) -> list[EdgePath]:
+        """Build routed edge paths for a tree."""
         edges: list[EdgePath] = []
         for parent, child in tree.iter_edges():
             edges.append(
@@ -34,6 +36,7 @@ class EdgeRouter:
         tree_layout: TreeLayout,
         line_style: LineStyle,
     ) -> list[tuple[float, float]]:
+        """Route one edge using the requested line style."""
         if line_style == "straight":
             return self._interpolate_line(
                 parent.position, child.position, self.options.straight_points
@@ -48,6 +51,7 @@ class EdgeRouter:
         child: TreeNode,
         tree_layout: TreeLayout,
     ) -> list[tuple[float, float]]:
+        """Route an edge using orthogonal or radial split segments."""
         if tree_layout == "radial":
             parent_angle, parent_radius = parent.polar_position
             child_angle, child_radius = child.polar_position
@@ -110,6 +114,7 @@ class EdgeRouter:
         child: TreeNode,
         tree_layout: TreeLayout,
     ) -> list[tuple[float, float]]:
+        """Route an edge using cubic Bézier curves."""
         if tree_layout == "radial":
             parent_angle, parent_radius = parent.polar_position
             child_angle, child_radius = child.polar_position
@@ -146,6 +151,7 @@ class EdgeRouter:
         p3: tuple[float, float],
         samples: int,
     ) -> list[tuple[float, float]]:
+        """Sample a cubic Bézier curve into evenly spaced points."""
         return [
             self._bezier_point(p0, p1, p2, p3, index / (samples - 1)) for index in range(samples)
         ]
@@ -158,6 +164,7 @@ class EdgeRouter:
         p3: tuple[float, float],
         t: float,
     ) -> tuple[float, float]:
+        """Evaluate a cubic Bézier curve at a parameter value."""
         inv = 1.0 - t
         x = (inv**3) * p0[0] + 3 * (inv**2) * t * p1[0] + 3 * inv * (t**2) * p2[0] + (t**3) * p3[0]
         y = (inv**3) * p0[1] + 3 * (inv**2) * t * p1[1] + 3 * inv * (t**2) * p2[1] + (t**3) * p3[1]
@@ -169,6 +176,7 @@ class EdgeRouter:
         end: tuple[float, float],
         samples: int,
     ) -> list[tuple[float, float]]:
+        """Interpolate a straight line into evenly spaced points."""
         return [
             (
                 start[0] + (end[0] - start[0]) * (index / (samples - 1)),
@@ -182,6 +190,7 @@ class EdgeRouter:
         points: list[tuple[float, float]],
         samples_per_segment: int,
     ) -> list[tuple[float, float]]:
+        """Expand a polyline into evenly spaced segments."""
         densified: list[tuple[float, float]] = []
         for segment_index in range(len(points) - 1):
             segment = self._interpolate_line(
@@ -200,6 +209,7 @@ class EdgeRouter:
         end_angle: float,
         samples: int,
     ) -> list[tuple[float, float]]:
+        """Sample points along a circular arc."""
         if samples < 2:
             return [self._polar_to_xy(end_angle, radius)]
         delta = self._shortest_angle_delta(start_angle, end_angle)
@@ -211,6 +221,7 @@ class EdgeRouter:
     def _merge_segments(
         self, segments: list[list[tuple[float, float]]]
     ) -> list[tuple[float, float]]:
+        """Merge sampled segments without duplicating join points."""
         merged: list[tuple[float, float]] = []
         for index, segment in enumerate(segments):
             if index and segment:
@@ -220,7 +231,9 @@ class EdgeRouter:
         return merged
 
     def _polar_to_xy(self, angle: float, radius: float) -> tuple[float, float]:
+        """Convert polar coordinates to Cartesian coordinates."""
         return (radius * math.cos(angle), radius * math.sin(angle))
 
     def _shortest_angle_delta(self, start: float, end: float) -> float:
+        """Return the shortest signed angular distance between two angles."""
         return math.atan2(math.sin(end - start), math.cos(end - start))

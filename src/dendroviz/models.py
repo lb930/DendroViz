@@ -37,25 +37,31 @@ class TreeNode:
 
     @property
     def is_leaf(self) -> bool:
+        """Return whether the node has no children."""
         return not self.children
 
     @property
     def position(self) -> tuple[float, float]:
+        """Return the node's Cartesian position."""
         return (self.x, self.y)
 
     @property
     def polar_position(self) -> tuple[float, float]:
+        """Return the node's polar coordinates."""
         if self.angle is None or self.radius is None:
             raise ValueError("Node does not have radial coordinates.")
         return (self.angle, self.radius)
 
     def add_child(self, child: "TreeNode") -> None:
+        """Append a child node."""
         self.children.append(child)
 
     def sort_children(self) -> None:
+        """Sort children by order, label, and node id."""
         self.children.sort(key=lambda child: (child.order, child.label, child.node_id))
 
     def iter_preorder(self) -> Iterator["TreeNode"]:
+        """Yield the node and its descendants in preorder."""
         yield self
         for child in self.children:
             yield from child.iter_preorder()
@@ -68,15 +74,18 @@ class TreeModel:
     node_map: dict[str, TreeNode]
 
     def iter_edges(self) -> Iterator[tuple[TreeNode, TreeNode]]:
+        """Yield parent-child pairs for each edge in the tree."""
         for node in self.nodes:
             if node.parent_id is None:
                 continue
             yield self.node_map[node.parent_id], node
 
     def leaves(self) -> list[TreeNode]:
+        """Return all leaf nodes in tree order."""
         return [node for node in self.nodes if node.is_leaf]
 
     def top_level_branch(self, node: TreeNode) -> TreeNode | None:
+        """Return the branch root for the given node, or None for the tree root."""
         if node.parent_id is None:
             return None
         current = node
@@ -87,6 +96,7 @@ class TreeModel:
         return current
 
     def path_to_node(self, node: TreeNode) -> list[TreeNode]:
+        """Return the path from the tree root to the given node."""
         path: list[TreeNode] = []
         current: TreeNode | None = node
         while current is not None:
@@ -141,8 +151,10 @@ class RenderResult:
 
     @property
     def root(self) -> TreeNode:
+        """Return the tree root."""
         return self.tree.root
 
     @property
     def nodes(self) -> list[TreeNode]:
+        """Return the ordered tree nodes."""
         return self.tree.nodes

@@ -1,3 +1,5 @@
+from importlib.metadata import version
+
 from .api import DendrogramGenerator
 from .errors import DendrogramError, ValidationError
 from .input import TreeCsvLoader
@@ -16,4 +18,4 @@ __all__ = [
     "ValidationError",
 ]
 
-__version__ = "0.1.0"
+__version__ = version("dendroviz")

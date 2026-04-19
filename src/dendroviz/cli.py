@@ -9,6 +9,7 @@ from .models import LayoutOptions
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line argument parser."""
     parser = argparse.ArgumentParser(
         prog="dendroviz", description="Build dendrogram CSV and SVG output."
     )
@@ -62,6 +63,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Run the command-line entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
     generator = DendrogramGenerator()

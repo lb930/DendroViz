@@ -16,6 +16,17 @@ PALETTES = {
 }
 
 
+def branch_colors_for(result: RenderResult, options: LayoutOptions) -> dict[str, str]:
+    """Build per-branch colors when palette mode is enabled."""
+    if options.color_mode != "palette":
+        return {}
+    palette = PALETTES[options.palette]
+    return {
+        child.node_id: palette[index % len(palette)]
+        for index, child in enumerate(result.root.children)
+    }
+
+
 class CsvExporter:
     FIELDNAMES = [
         "type",
@@ -41,13 +52,15 @@ class CsvExporter:
         result: RenderResult,
         options: LayoutOptions,
     ) -> list[dict[str, str | float | int]]:
-        branch_colors = self._branch_colors(result, options)
+        """Build CSV rows for all routed edges and nodes."""
+        branch_colors = branch_colors_for(result, options)
         rows: list[dict[str, str | float | int]] = []
         rows.extend(self._build_edge_rows(result, options, branch_colors))
         rows.extend(self._build_node_rows(result.nodes, result, options, branch_colors))
         return rows
 
     def export(self, path: str | Path, rows: list[dict[str, str | float | int]]) -> Path:
+        """Write CSV rows to disk."""
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         with output_path.open("w", encoding="utf-8", newline="") as handle:
@@ -62,6 +75,7 @@ class CsvExporter:
         options: LayoutOptions,
         branch_colors: dict[str, str],
     ) -> list[dict[str, str | float | int]]:
+        """Build CSV rows for routed edges."""
         rows: list[dict[str, str | float | int]] = []
         for edge_index, edge in enumerate(result.edges):
             target = result.tree.node_map[edge.target_id]
@@ -97,6 +111,7 @@ class CsvExporter:
         options: LayoutOptions,
         branch_colors: dict[str, str],
     ) -> list[dict[str, str | float | int]]:
+        """Build CSV rows for nodes."""
         return [
             {
                 "type": "node",
@@ -119,15 +134,6 @@ class CsvExporter:
             for node in nodes
         ]
 
-    def _branch_colors(self, result: RenderResult, options: LayoutOptions) -> dict[str, str]:
-        if options.color_mode != "palette":
-            return {}
-        palette = PALETTES[options.palette]
-        return {
-            child.node_id: palette[index % len(palette)]
-            for index, child in enumerate(result.root.children)
-        }
-
     def _branch_aware_color(
         self,
         node: TreeNode,
@@ -135,18 +141,21 @@ class CsvExporter:
         default_color: str,
         branch_colors: dict[str, str],
     ) -> str:
+        """Resolve the display color for a node or edge."""
         branch = result.tree.top_level_branch(node)
         if branch is None:
             return default_color
         return branch_colors.get(branch.node_id, default_color)
 
     def _group_label(self, node: TreeNode, result: RenderResult) -> str:
+        """Return the top-level branch label for a node."""
         branch = result.tree.top_level_branch(node)
         if branch is None:
             return result.root.label
         return branch.label
 
     def _branch_path(self, node: TreeNode, result: RenderResult) -> str:
+        """Return a human-readable path of labels to a node."""
         return "|".join(ancestor.label for ancestor in result.tree.path_to_node(node))
 
 
@@ -158,9 +167,10 @@ class SvgExporter:
         show_labels: bool,
         options: LayoutOptions,
     ) -> Path:
+        """Write an SVG rendering to disk."""
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        branch_colors = self._branch_colors(result, options)
+        branch_colors = branch_colors_for(result, options)
         scale = max(options.svg_scale, 0.01)
 
         min_x, min_y, width, height = self._compute_bounds(result.nodes, options, show_labels)
@@ -204,6 +214,7 @@ class SvgExporter:
         options: LayoutOptions,
         show_labels: bool,
     ) -> tuple[float, float, float, float]:
+        """Compute the SVG bounding box for a tree."""
         min_x = min(node.x for node in nodes)
         max_x = max(node.x for node in nodes)
         min_y = min(node.y for node in nodes)
@@ -231,6 +242,7 @@ class SvgExporter:
         scale: float,
         stroke_color: str,
     ) -> str:
+        """Render one SVG path element."""
         transformed = [
             f"{((x - min_x + margin) * scale):.3f},{((y - min_y + margin) * scale):.3f}"
             for x, y in edge.points
@@ -248,6 +260,7 @@ class SvgExporter:
         result: RenderResult,
         branch_colors: dict[str, str],
     ) -> str:
+        """Render one SVG node and optional label."""
         x = (node.x - min_x + options.margin) * scale
         y = (node.y - min_y + options.margin) * scale
         parts: list[str] = []
@@ -262,6 +275,7 @@ class SvgExporter:
         return "\n".join(parts)
 
     def _should_render_node(self, node: TreeNode, options: LayoutOptions) -> bool:
+        """Return whether the node marker should be rendered."""
         if node.parent_id is None:
             return options.show_root_node
         if node.is_leaf:
@@ -269,6 +283,7 @@ class SvgExporter:
         return options.show_internal_nodes
 
     def _should_render_label(self, node: TreeNode, options: LayoutOptions) -> bool:
+        """Return whether the node label should be rendered."""
         if options.label_mode == "none":
             return False
         if options.label_mode == "leaves":
@@ -285,6 +300,7 @@ class SvgExporter:
         result: RenderResult,
         branch_colors: dict[str, str],
     ) -> str:
+        """Render a non-radial SVG label."""
         label_color = self._label_color(node, result, options, branch_colors)
         if (
             node.angle is not None
@@ -317,6 +333,7 @@ class SvgExporter:
         scale: float,
         label_color: str,
     ) -> str:
+        """Render a radial SVG label."""
         assert node.angle is not None
         radius_delta = options.label_offset * scale
         label_x = x + (radius_delta * math.cos(node.angle))
@@ -334,15 +351,6 @@ class SvgExporter:
             f"{html.escape(node.label)}</text>"
         )
 
-    def _branch_colors(self, result: RenderResult, options: LayoutOptions) -> dict[str, str]:
-        if options.color_mode != "palette":
-            return {}
-        palette = PALETTES[options.palette]
-        return {
-            child.node_id: palette[index % len(palette)]
-            for index, child in enumerate(result.root.children)
-        }
-
     def _edge_color(
         self,
         edge: EdgePath,
@@ -350,6 +358,7 @@ class SvgExporter:
         options: LayoutOptions,
         branch_colors: dict[str, str],
     ) -> str:
+        """Resolve the stroke color for an edge."""
         node = result.tree.node_map[edge.target_id]
         return self._branch_aware_color(node, result, options.edge_color, branch_colors)
 
@@ -360,6 +369,7 @@ class SvgExporter:
         options: LayoutOptions,
         branch_colors: dict[str, str],
     ) -> str:
+        """Resolve the fill color for a node."""
         return self._branch_aware_color(node, result, options.node_color, branch_colors)
 
     def _label_color(
@@ -369,6 +379,7 @@ class SvgExporter:
         options: LayoutOptions,
         branch_colors: dict[str, str],
     ) -> str:
+        """Resolve the fill color for a label."""
         return self._branch_aware_color(node, result, options.label_color, branch_colors)
 
     def _branch_aware_color(
@@ -378,6 +389,7 @@ class SvgExporter:
         fallback_color: str,
         branch_colors: dict[str, str],
     ) -> str:
+        """Resolve a palette color for the node's branch or use a fallback."""
         branch = result.tree.top_level_branch(node)
         if branch is None:
             return fallback_color

@@ -7,9 +7,11 @@ from .models import LayoutOptions, TreeLayout, TreeModel, TreeNode
 
 class TreeLayouter:
     def __init__(self, options: LayoutOptions) -> None:
+        """Create a layouter with the given layout options."""
         self.options = options
 
     def apply(self, tree: TreeModel, tree_layout: TreeLayout) -> list[TreeNode]:
+        """Apply the requested layout to a tree."""
         if tree_layout == "radial":
             return self._apply_radial(tree)
         if tree_layout == "vertical":
@@ -17,6 +19,7 @@ class TreeLayouter:
         return self._apply_horizontal(tree)
 
     def _apply_vertical(self, tree: TreeModel) -> list[TreeNode]:
+        """Assign vertical layout coordinates."""
         self._assign_leaf_positions(tree)
         for node in tree.nodes:
             node.x = node.leaf_index * self.options.sibling_spacing
@@ -26,6 +29,7 @@ class TreeLayouter:
         return tree.nodes
 
     def _apply_horizontal(self, tree: TreeModel) -> list[TreeNode]:
+        """Assign horizontal layout coordinates."""
         self._assign_leaf_positions(tree)
         for node in tree.nodes:
             node.x = node.depth * self.options.depth_spacing
@@ -35,6 +39,7 @@ class TreeLayouter:
         return tree.nodes
 
     def _apply_radial(self, tree: TreeModel) -> list[TreeNode]:
+        """Assign radial layout coordinates."""
         leaves = tree.leaves()
         leaf_count = max(len(leaves), 1)
         base_angle = math.radians(self.options.radial_base_angle_deg)
@@ -55,11 +60,13 @@ class TreeLayouter:
         return tree.nodes
 
     def _assign_leaf_positions(self, tree: TreeModel) -> None:
+        """Assign leaf indices before propagating them upward."""
         for index, leaf in enumerate(tree.leaves()):
             leaf.leaf_index = float(index)
         self._assign_internal_leaf_index(tree.root)
 
     def _assign_internal_leaf_index(self, node: TreeNode) -> float:
+        """Compute a node's leaf index from its descendants."""
         if node.is_leaf:
             return node.leaf_index
         child_positions = [self._assign_internal_leaf_index(child) for child in node.children]
@@ -67,6 +74,7 @@ class TreeLayouter:
         return node.leaf_index
 
     def _assign_internal_angles(self, node: TreeNode) -> float:
+        """Compute a node's radial angle from its descendants."""
         if node.is_leaf:
             if node.angle is None:
                 raise ValueError("Leaf nodes must have an angle before radial layout is finalized.")
@@ -77,6 +85,7 @@ class TreeLayouter:
         return node.angle
 
     def _leaf_fraction(self, index: int, leaf_count: int, sweep: float) -> float:
+        """Return the normalized position for a leaf within the sweep."""
         if leaf_count == 1:
             return 0.0
         if math.isclose(abs(sweep), math.tau):
@@ -84,6 +93,7 @@ class TreeLayouter:
         return index / (leaf_count - 1)
 
     def _circular_mean(self, angles: list[float]) -> float:
+        """Compute the circular mean for a list of angles."""
         sin_sum = sum(math.sin(angle) for angle in angles)
         cos_sum = sum(math.cos(angle) for angle in angles)
         return math.atan2(sin_sum, cos_sum)
