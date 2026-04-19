@@ -57,8 +57,19 @@ def build_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--color-mode", choices=["global", "palette"], default="global")
     build_parser.add_argument(
         "--palette",
-        choices=["default", "pastel", "high_contrast", "earth", "scientific"],
-        default="default",
+        choices=[
+            "set1",
+            "set2",
+            "set3",
+            "pastel1",
+            "pastel2",
+            "accent",
+            "paired",
+            "tableau",
+            "dark2",
+            "scientific",
+        ],
+        default="set1",
     )
     build_parser.add_argument("--node-color", default="#0f172a")
     build_parser.add_argument("--edge-color", default="#334155")

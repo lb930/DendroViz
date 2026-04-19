@@ -10,7 +10,18 @@ InputFormat = Literal["csv", "newick", "json"]
 LabelMode = Literal["all", "leaves", "none"]
 LabelOrientation = Literal["horizontal", "auto"]
 ColorMode = Literal["global", "palette"]
-PaletteName = Literal["default", "pastel", "high_contrast", "earth", "scientific"]
+PaletteName = Literal[
+    "set1",
+    "set2",
+    "set3",
+    "pastel1",
+    "pastel2",
+    "accent",
+    "paired",
+    "tableau",
+    "dark2",
+    "scientific",
+]
 
 
 @dataclass(slots=True)
@@ -133,7 +144,7 @@ class LayoutOptions:
     label_orientation: LabelOrientation = "auto"
     label_offset: float = 18.0
     color_mode: ColorMode = "global"
-    palette: PaletteName = "default"
+    palette: PaletteName = "set1"
     edge_color: str = "#334155"
     node_color: str = "#0f172a"
     label_color: str = "#111827"

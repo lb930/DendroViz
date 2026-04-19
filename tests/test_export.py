@@ -248,10 +248,10 @@ class ExportTests(unittest.TestCase):
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
-        self.assertIn('stroke="#0072b2"', svg_text)
-        self.assertIn('stroke="#d55e00"', svg_text)
-        self.assertIn('fill="#0072b2"', svg_text)
-        self.assertIn('fill="#d55e00"', svg_text)
+        self.assertIn('stroke="#e69f00"', svg_text)
+        self.assertIn('stroke="#56b4e9"', svg_text)
+        self.assertIn('fill="#e69f00"', svg_text)
+        self.assertIn('fill="#56b4e9"', svg_text)
 
     def test_svg_expands_canvas_for_large_labels(self) -> None:
         """Expand the SVG canvas when labels need more room."""
