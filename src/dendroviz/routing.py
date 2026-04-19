@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 import math
 
 from .models import EdgePath, LayoutOptions, LineStyle, TreeLayout, TreeModel, TreeNode
+
+logger = logging.getLogger(__name__)
 
 
 class EdgeRouter:
@@ -17,6 +20,7 @@ class EdgeRouter:
         line_style: LineStyle,
     ) -> list[EdgePath]:
         """Build routed edge paths for a tree."""
+        logger.info("Routing %d edges using %s/%s", len(tree.nodes) - 1, tree_layout, line_style)
         edges: list[EdgePath] = []
         for parent, child in tree.iter_edges():
             edges.append(
@@ -27,6 +31,7 @@ class EdgeRouter:
                     points=self._route_points(parent, child, tree_layout, line_style),
                 )
             )
+        logger.debug("Built %d edge paths", len(edges))
         return edges
 
     def _route_points(

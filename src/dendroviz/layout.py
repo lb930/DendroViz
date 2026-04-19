@@ -1,8 +1,11 @@
 from __future__ import annotations
 
+import logging
 import math
 
 from .models import LayoutOptions, TreeLayout, TreeModel, TreeNode
+
+logger = logging.getLogger(__name__)
 
 
 class TreeLayouter:
@@ -12,6 +15,7 @@ class TreeLayouter:
 
     def apply(self, tree: TreeModel, tree_layout: TreeLayout) -> list[TreeNode]:
         """Apply the requested layout to a tree."""
+        logger.info("Applying %s layout to %d nodes", tree_layout, len(tree.nodes))
         if tree_layout == "radial":
             return self._apply_radial(tree)
         if tree_layout == "vertical":
@@ -57,6 +61,7 @@ class TreeLayouter:
             node.radius = radius
             node.x = radius * math.cos(angle)
             node.y = radius * math.sin(angle)
+        logger.debug("Assigned radial coordinates to %d nodes", len(tree.nodes))
         return tree.nodes
 
     def _assign_leaf_positions(self, tree: TreeModel) -> None:
