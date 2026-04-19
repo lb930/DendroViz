@@ -80,7 +80,9 @@ class TreeModel:
         if node.parent_id is None:
             return None
         current = node
-        while current.parent_id is not None and self.node_map[current.parent_id].parent_id is not None:
+        while (
+            current.parent_id is not None and self.node_map[current.parent_id].parent_id is not None
+        ):
             current = self.node_map[current.parent_id]
         return current
 
@@ -92,6 +94,7 @@ class TreeModel:
             current = self.node_map[current.parent_id] if current.parent_id is not None else None
         path.reverse()
         return path
+
 
 @dataclass(slots=True)
 class EdgePath:

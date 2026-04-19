@@ -9,26 +9,46 @@ from .models import LayoutOptions
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="dendroviz", description="Build dendrogram CSV and SVG output.")
+    parser = argparse.ArgumentParser(
+        prog="dendroviz", description="Build dendrogram CSV and SVG output."
+    )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    build_parser = subparsers.add_parser("build", help="Generate dendrogram artifacts from an input tree.")
+    build_parser = subparsers.add_parser(
+        "build", help="Generate dendrogram artifacts from an input tree."
+    )
     build_parser.add_argument("input_path", help="Path to the input tree file.")
     build_parser.add_argument("--input-format", choices=["csv", "newick"], default="csv")
-    build_parser.add_argument("--tree-layout", choices=["radial", "vertical", "horizontal"], required=True)
-    build_parser.add_argument("--line-style", choices=["curved", "split", "straight"], required=True)
+    build_parser.add_argument(
+        "--tree-layout", choices=["radial", "vertical", "horizontal"], required=True
+    )
+    build_parser.add_argument(
+        "--line-style", choices=["curved", "split", "straight"], required=True
+    )
     build_parser.add_argument("--output-csv", help="Path to write the render-ready CSV.")
     build_parser.add_argument("--output-svg", help="Path to write the SVG output.")
-    build_parser.add_argument("--show-labels", action="store_true", help="Show labels in SVG output.")
+    build_parser.add_argument(
+        "--show-labels", action="store_true", help="Show labels in SVG output."
+    )
     build_parser.add_argument("--label-mode", choices=["all", "leaves", "none"], default="all")
-    build_parser.add_argument("--hide-internal-nodes", action="store_true", help="Hide non-leaf node markers in SVG output.")
-    build_parser.add_argument("--hide-root-node", action="store_true", help="Hide the root node marker in SVG output.")
+    build_parser.add_argument(
+        "--hide-internal-nodes",
+        action="store_true",
+        help="Hide non-leaf node markers in SVG output.",
+    )
+    build_parser.add_argument(
+        "--hide-root-node", action="store_true", help="Hide the root node marker in SVG output."
+    )
     build_parser.add_argument("--label-orientation", choices=["horizontal", "auto"], default="auto")
     build_parser.add_argument("--label-offset", type=float, default=18.0)
     build_parser.add_argument("--scale", type=float, default=1.0, help="Scale the SVG output size.")
     build_parser.add_argument("--font-size", type=int, default=12)
     build_parser.add_argument("--color-mode", choices=["global", "palette"], default="global")
-    build_parser.add_argument("--palette", choices=["default", "pastel", "high_contrast", "earth", "scientific"], default="default")
+    build_parser.add_argument(
+        "--palette",
+        choices=["default", "pastel", "high_contrast", "earth", "scientific"],
+        default="default",
+    )
     build_parser.add_argument("--node-color", default="#0f172a")
     build_parser.add_argument("--edge-color", default="#334155")
     build_parser.add_argument("--label-color", default="#111827")

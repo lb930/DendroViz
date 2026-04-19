@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from .errors import ValidationError
 from .models import InputFormat, InputNode, TreeModel, TreeNode
@@ -26,7 +26,9 @@ class TreeCsvLoader:
         with csv_path.open("r", encoding="utf-8", newline="") as handle:
             reader = csv.DictReader(handle)
             self._validate_headers(reader.fieldnames)
-            nodes = [self._parse_row(row, row_number) for row_number, row in enumerate(reader, start=2)]
+            nodes = [
+                self._parse_row(row, row_number) for row_number, row in enumerate(reader, start=2)
+            ]
 
         if not nodes:
             raise ValidationError("Input CSV contains headers but no data rows.")
@@ -40,7 +42,7 @@ class TreeCsvLoader:
             raise ValidationError(f"Input Newick file does not exist: {newick_path}")
 
         try:
-            from Bio import Phylo
+            from Bio import Phylo  # type: ignore[import-not-found]
         except ImportError as exc:
             raise ImportError(
                 "Newick support requires BioPython. Install it with: pip install biopython"
@@ -61,7 +63,9 @@ class TreeCsvLoader:
 
         def build_node_id(label: str) -> str:
             nonlocal next_id
-            base_label = "".join(character if character.isalnum() else "_" for character in label.strip()).strip("_")
+            base_label = "".join(
+                character if character.isalnum() else "_" for character in label.strip()
+            ).strip("_")
             if base_label:
                 candidate = base_label
                 suffix = 2
@@ -125,7 +129,7 @@ class TreeCsvLoader:
         ordered_nodes = self._assign_depths_and_collect(root, depth=0)
         return TreeModel(root=root, nodes=ordered_nodes, node_map=tree_nodes)
 
-    def _validate_headers(self, fieldnames: list[str] | None) -> None:
+    def _validate_headers(self, fieldnames: Sequence[str] | None) -> None:
         if fieldnames is None:
             raise ValidationError("Input CSV is empty.")
         if tuple(fieldnames) != self.REQUIRED_COLUMNS:
@@ -180,7 +184,9 @@ class TreeCsvLoader:
 
     def _validate_parents_exist(self, nodes: list[InputNode]) -> None:
         ids = {node.node_id for node in nodes}
-        missing = sorted({node.parent_id for node in nodes if node.parent_id and node.parent_id not in ids})
+        missing = sorted(
+            {node.parent_id for node in nodes if node.parent_id and node.parent_id not in ids}
+        )
         if missing:
             raise ValidationError(f"Missing parent ids referenced by rows: {', '.join(missing)}")
 

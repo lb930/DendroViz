@@ -128,7 +128,9 @@ class ExportTests(unittest.TestCase):
             line_style="split",
             output_svg=output_svg,
             show_labels=True,
-            options=LayoutOptions(show_internal_nodes=False, show_root_node=False, label_mode="leaves"),
+            options=LayoutOptions(
+                show_internal_nodes=False, show_root_node=False, label_mode="leaves"
+            ),
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
@@ -199,7 +201,9 @@ class ExportTests(unittest.TestCase):
             line_style="curved",
             output_svg=labeled_svg,
             show_labels=True,
-            options=LayoutOptions(label_mode="leaves", label_orientation="auto", label_offset=36, font_size=20),
+            options=LayoutOptions(
+                label_mode="leaves", label_orientation="auto", label_offset=36, font_size=20
+            ),
         )
 
         plain_text = plain_svg.read_text(encoding="utf-8")
@@ -241,5 +245,5 @@ class ExportTests(unittest.TestCase):
         scaled_width = float(re.search(r'width="([0-9.]+)"', scaled_text).group(1))
 
         self.assertGreater(scaled_width, plain_width * 1.9)
-        self.assertIn('stroke-width: 4.000', scaled_text)
+        self.assertIn("stroke-width: 4.000", scaled_text)
         self.assertIn('font-size="24.000"', scaled_text)

@@ -149,7 +149,13 @@ class LoadTreeCsvTests(unittest.TestCase):
 
         original_import = __import__
 
-        def raising_import(name: str, globals: object = None, locals: object = None, fromlist: tuple[str, ...] = (), level: int = 0) -> object:
+        def raising_import(
+            name: str,
+            globals: object = None,
+            locals: object = None,
+            fromlist: tuple[str, ...] = (),
+            level: int = 0,
+        ) -> object:
             if name == "Bio":
                 raise ImportError("No module named Bio")
             return original_import(name, globals, locals, fromlist, level)

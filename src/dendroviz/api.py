@@ -55,7 +55,9 @@ class DendrogramGenerator:
         if output_csv is not None:
             result.output_csv = self.csv_exporter.export(output_csv, result.csv_rows)
         if output_svg is not None:
-            result.output_svg = self.svg_exporter.export(output_svg, result, show_labels, resolved_options)
+            result.output_svg = self.svg_exporter.export(
+                output_svg, result, show_labels, resolved_options
+            )
         return result
 
     def export_csv(self, path: str | Path, rows: list[dict[str, str | float | int]]) -> Path:

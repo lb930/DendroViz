@@ -5,7 +5,7 @@ import html
 import math
 from pathlib import Path
 
-from .models import EdgePath, LayoutOptions, LineStyle, RenderResult, TreeLayout, TreeNode
+from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
 
 PALETTES = {
     "default": ["#2563eb", "#dc2626", "#16a34a", "#ca8a04", "#9333ea", "#0891b2"],
@@ -177,7 +177,8 @@ class SvgExporter:
             for edge in result.edges
         )
         node_elements = "\n".join(
-            self._svg_node(node, min_x, min_y, options, scale, show_labels, result, branch_colors) for node in result.nodes
+            self._svg_node(node, min_x, min_y, options, scale, show_labels, result, branch_colors)
+            for node in result.nodes
         )
 
         svg_content = (
@@ -209,7 +210,9 @@ class SvgExporter:
         max_y = max(node.y for node in nodes)
         label_padding = 0.0
         if show_labels and options.label_mode != "none":
-            label_padding = max(options.node_radius + options.label_offset + (options.font_size * 8), 0.0)
+            label_padding = max(
+                options.node_radius + options.label_offset + (options.font_size * 8), 0.0
+            )
         min_x -= label_padding
         max_x += label_padding
         min_y -= label_padding
@@ -228,7 +231,10 @@ class SvgExporter:
         scale: float,
         stroke_color: str,
     ) -> str:
-        transformed = [f"{((x - min_x + margin) * scale):.3f},{((y - min_y + margin) * scale):.3f}" for x, y in edge.points]
+        transformed = [
+            f"{((x - min_x + margin) * scale):.3f},{((y - min_y + margin) * scale):.3f}"
+            for x, y in edge.points
+        ]
         return f'<path class="edge" stroke="{stroke_color}" d="M {" L ".join(transformed)}" />'
 
     def _svg_node(
@@ -246,8 +252,9 @@ class SvgExporter:
         y = (node.y - min_y + options.margin) * scale
         parts: list[str] = []
         if self._should_render_node(node, options):
+            node_color = self._node_color(node, result, options, branch_colors)
             parts.append(
-                f'<circle class="node" fill="{self._node_color(node, result, options, branch_colors)}" '
+                f'<circle class="node" fill="{node_color}" '
                 f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}" />'
             )
         if show_labels and self._should_render_label(node, options):
@@ -278,13 +285,25 @@ class SvgExporter:
         result: RenderResult,
         branch_colors: dict[str, str],
     ) -> str:
-        if node.angle is not None and node.radius is not None and options.label_orientation == "auto":
-            return self._svg_radial_label(node, x, y, options, scale, result, branch_colors)
+        label_color = self._label_color(node, result, options, branch_colors)
+        if (
+            node.angle is not None
+            and node.radius is not None
+            and options.label_orientation == "auto"
+        ):
+            return self._svg_radial_label(
+                node,
+                x,
+                y,
+                options,
+                scale,
+                label_color,
+            )
         label_x = x + ((options.node_radius + options.label_offset) * scale)
         label_y = y
         return (
             f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
-            f'font-size="{options.font_size * scale:.3f}" fill="{self._label_color(node, result, options, branch_colors)}" '
+            f'font-size="{options.font_size * scale:.3f}" fill="{label_color}" '
             f'dominant-baseline="middle">'
             f"{html.escape(node.label)}</text>"
         )
@@ -296,8 +315,7 @@ class SvgExporter:
         y: float,
         options: LayoutOptions,
         scale: float,
-        result: RenderResult,
-        branch_colors: dict[str, str],
+        label_color: str,
     ) -> str:
         assert node.angle is not None
         radius_delta = options.label_offset * scale
@@ -310,7 +328,7 @@ class SvgExporter:
             anchor = "end"
         return (
             f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
-            f'font-size="{options.font_size * scale:.3f}" fill="{self._label_color(node, result, options, branch_colors)}" '
+            f'font-size="{options.font_size * scale:.3f}" fill="{label_color}" '
             f'text-anchor="{anchor}" dominant-baseline="middle" '
             f'transform="rotate({rotation:.3f} {label_x:.3f} {label_y:.3f})">'
             f"{html.escape(node.label)}</text>"

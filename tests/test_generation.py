@@ -36,7 +36,9 @@ class GenerationTests(unittest.TestCase):
         for layout in layouts:
             for line_style in line_styles:
                 with self.subTest(layout=layout, line_style=line_style):
-                    result = generator.generate_tree(path, tree_layout=layout, line_style=line_style)
+                    result = generator.generate_tree(
+                        path, tree_layout=layout, line_style=line_style
+                    )
                     self.assertEqual(len(result.nodes), 6)
                     self.assertEqual(len(result.edges), 5)
                     self.assertTrue(result.csv_rows)
@@ -69,7 +71,9 @@ class GenerationTests(unittest.TestCase):
     def test_custom_spacing_changes_output(self) -> None:
         generator = DendrogramGenerator()
         path = write_sample_tree()
-        default_result = generator.generate_tree(path, tree_layout="vertical", line_style="straight")
+        default_result = generator.generate_tree(
+            path, tree_layout="vertical", line_style="straight"
+        )
         custom_result = generator.generate_tree(
             path,
             tree_layout="vertical",
@@ -122,7 +126,9 @@ class GenerationTests(unittest.TestCase):
 
         self.assertAlmostEqual(edge.points[-1][0], child.x)
         self.assertAlmostEqual(edge.points[-1][1], child.y)
-        branch_y = round(result.root.y + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3)
+        branch_y = round(
+            result.root.y + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3
+        )
         self.assertGreater(sum(1 for _, y in edge.points if round(y, 3) == branch_y), 3)
 
     def test_horizontal_split_places_internal_node_at_branch_fork(self) -> None:
@@ -134,5 +140,7 @@ class GenerationTests(unittest.TestCase):
 
         self.assertAlmostEqual(edge.points[-1][0], child.x)
         self.assertAlmostEqual(edge.points[-1][1], child.y)
-        branch_x = round(result.root.x + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3)
+        branch_x = round(
+            result.root.x + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3
+        )
         self.assertGreater(sum(1 for x, _ in edge.points if round(x, 3) == branch_x), 3)

@@ -35,7 +35,9 @@ class EdgeRouter:
         line_style: LineStyle,
     ) -> list[tuple[float, float]]:
         if line_style == "straight":
-            return self._interpolate_line(parent.position, child.position, self.options.straight_points)
+            return self._interpolate_line(
+                parent.position, child.position, self.options.straight_points
+            )
         if line_style == "split":
             return self._route_split(parent, child, tree_layout)
         return self._route_curved(parent, child, tree_layout)
@@ -123,7 +125,9 @@ class EdgeRouter:
                 p2 = self._polar_to_xy(child_angle, mid_radius)
             return self._sample_cubic_bezier(p0, p1, p2, p3, self.options.curve_points)
 
-        midpoint = (parent.y + child.y) / 2.0 if tree_layout == "vertical" else (parent.x + child.x) / 2.0
+        midpoint = (
+            (parent.y + child.y) / 2.0 if tree_layout == "vertical" else (parent.x + child.x) / 2.0
+        )
         p0 = parent.position
         p3 = child.position
         if tree_layout == "vertical":
@@ -142,7 +146,9 @@ class EdgeRouter:
         p3: tuple[float, float],
         samples: int,
     ) -> list[tuple[float, float]]:
-        return [self._bezier_point(p0, p1, p2, p3, index / (samples - 1)) for index in range(samples)]
+        return [
+            self._bezier_point(p0, p1, p2, p3, index / (samples - 1)) for index in range(samples)
+        ]
 
     def _bezier_point(
         self,
@@ -153,18 +159,8 @@ class EdgeRouter:
         t: float,
     ) -> tuple[float, float]:
         inv = 1.0 - t
-        x = (
-            (inv**3) * p0[0]
-            + 3 * (inv**2) * t * p1[0]
-            + 3 * inv * (t**2) * p2[0]
-            + (t**3) * p3[0]
-        )
-        y = (
-            (inv**3) * p0[1]
-            + 3 * (inv**2) * t * p1[1]
-            + 3 * inv * (t**2) * p2[1]
-            + (t**3) * p3[1]
-        )
+        x = (inv**3) * p0[0] + 3 * (inv**2) * t * p1[0] + 3 * inv * (t**2) * p2[0] + (t**3) * p3[0]
+        y = (inv**3) * p0[1] + 3 * (inv**2) * t * p1[1] + 3 * inv * (t**2) * p2[1] + (t**3) * p3[1]
         return (x, y)
 
     def _interpolate_line(
@@ -188,7 +184,9 @@ class EdgeRouter:
     ) -> list[tuple[float, float]]:
         densified: list[tuple[float, float]] = []
         for segment_index in range(len(points) - 1):
-            segment = self._interpolate_line(points[segment_index], points[segment_index + 1], samples_per_segment)
+            segment = self._interpolate_line(
+                points[segment_index], points[segment_index + 1], samples_per_segment
+            )
             if segment_index:
                 segment = segment[1:]
             densified.extend(segment)
@@ -210,7 +208,9 @@ class EdgeRouter:
             for index in range(samples)
         ]
 
-    def _merge_segments(self, segments: list[list[tuple[float, float]]]) -> list[tuple[float, float]]:
+    def _merge_segments(
+        self, segments: list[list[tuple[float, float]]]
+    ) -> list[tuple[float, float]]:
         merged: list[tuple[float, float]] = []
         for index, segment in enumerate(segments):
             if index and segment:
