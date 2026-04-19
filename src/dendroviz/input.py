@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import csv
 import json
+import logging
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Sequence
@@ -9,12 +10,15 @@ from typing import Any, Sequence
 from .errors import ValidationError
 from .models import InputFormat, InputNode, TreeModel, TreeNode
 
+logger = logging.getLogger(__name__)
+
 
 class TreeCsvLoader:
     REQUIRED_COLUMNS = ("id", "parent", "label", "order")
 
     def load_rows(self, path: str | Path, *, input_format: InputFormat = "csv") -> list[InputNode]:
         """Load raw input rows in the requested format."""
+        logger.debug("Loading %s input from %s", input_format, path)
         if input_format == "csv":
             return self._load_csv_rows(path)
         if input_format == "newick":
@@ -40,6 +44,7 @@ class TreeCsvLoader:
             raise ValidationError("Input CSV contains headers but no data rows.")
 
         self._validate_rows(nodes)
+        logger.info("Loaded %d CSV rows from %s", len(nodes), csv_path)
         return nodes
 
     def _load_newick_rows(self, path: str | Path) -> list[InputNode]:
@@ -109,6 +114,7 @@ class TreeCsvLoader:
 
         visit(root, None, 0)
         self._validate_rows(nodes)
+        logger.info("Loaded %d Newick rows from %s", len(nodes), newick_path)
         return nodes
 
     def _load_json_rows(self, path: str | Path) -> list[InputNode]:
@@ -131,11 +137,15 @@ class TreeCsvLoader:
             for row_number, row in enumerate(rows, start=1)
         ]
         self._validate_rows(nodes)
+        logger.info("Loaded %d JSON rows from %s", len(nodes), json_path)
         return nodes
 
     def load_tree(self, path: str | Path, *, input_format: InputFormat = "csv") -> TreeModel:
         """Load rows and convert them into a tree model."""
-        return self.build_tree(self.load_rows(path, input_format=input_format))
+        rows = self.load_rows(path, input_format=input_format)
+        tree = self.build_tree(rows)
+        logger.info("Built tree with %d nodes and root %s", len(tree.nodes), tree.root.node_id)
+        return tree
 
     def build_tree(self, nodes: list[InputNode]) -> TreeModel:
         """Build a tree model from validated input nodes."""

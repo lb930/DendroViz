@@ -3,7 +3,10 @@ from __future__ import annotations
 import subprocess
 import sys
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from io import StringIO
 from pathlib import Path
+from unittest import mock
 
 from tests.helpers import write_csv_file, write_json_file, write_text_file
 
@@ -58,6 +61,69 @@ class CliTests(unittest.TestCase):
         self.assertTrue(output_csv.exists())
         self.assertTrue(output_svg.exists())
         self.assertIn("Generated", completed.stdout)
+
+    def test_cli_emits_logging_when_requested(self) -> None:
+        """Emit structured logs when the log level is raised."""
+        directory, input_path = write_input_csv()
+        output_csv = directory / "out.csv"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-csv",
+                str(output_csv),
+                "--log-level",
+                "INFO",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("INFO:dendroviz.api:Generating tree...", completed.stderr)
+        self.assertIn("INFO:dendroviz.cli:Building dendrogram", completed.stderr)
+        self.assertIn("INFO:dendroviz.api:Generating tree", completed.stderr)
+        self.assertIn("INFO:dendroviz.export:Writing CSV export", completed.stderr)
+
+    def test_cli_logs_unexpected_errors(self) -> None:
+        """Log unexpected failures instead of swallowing them."""
+        _, input_path = write_input_csv()
+
+        stderr = StringIO()
+        stdout = StringIO()
+        with mock.patch(
+            "dendroviz.cli.DendrogramGenerator.generate_tree",
+            side_effect=RuntimeError("boom"),
+        ):
+            with redirect_stdout(stdout), redirect_stderr(stderr):
+                exit_code = __import__("dendroviz.cli", fromlist=["main"]).main(
+                    [
+                        "build",
+                        str(input_path),
+                        "--tree-layout",
+                        "vertical",
+                        "--line-style",
+                        "straight",
+                        "--output-csv",
+                        str(input_path.with_suffix(".out.csv")),
+                        "--log-level",
+                        "INFO",
+                    ]
+                )
+
+        self.assertEqual(exit_code, 1)
+        self.assertEqual(stdout.getvalue(), "")
+        self.assertIn("Unexpected error while building dendrogram", stderr.getvalue())
+        self.assertIn("RuntimeError: boom", stderr.getvalue())
 
     def test_cli_requires_an_output(self) -> None:
         """Reject builds that do not request any output artifact."""

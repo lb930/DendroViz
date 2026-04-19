@@ -1,10 +1,13 @@
 import csv
 import html
 import json
+import logging
 import math
 from pathlib import Path
 
 from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
+
+logger = logging.getLogger(__name__)
 
 PALETTES = {
     "default": ["#2563eb", "#dc2626", "#16a34a", "#ca8a04", "#9333ea", "#0891b2"],
@@ -62,6 +65,7 @@ class CsvExporter:
         """Write CSV rows to disk."""
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
+        logger.info("Writing CSV export to %s (%d rows)", output_path, len(rows))
         with output_path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.DictWriter(handle, fieldnames=self.FIELDNAMES)
             writer.writeheader()
@@ -170,6 +174,12 @@ class JsonExporter:
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
         payload = self._build_payload(result, options, show_labels)
+        logger.info(
+            "Writing JSON export to %s (%d nodes, %d edges)",
+            output_path,
+            len(result.nodes),
+            len(result.edges),
+        )
         output_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
         return output_path
 
@@ -304,6 +314,12 @@ class SvgExporter:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         branch_colors = branch_colors_for(result, options)
         scale = max(options.svg_scale, 0.01)
+        logger.info(
+            "Writing SVG export to %s (%d nodes, %d edges)",
+            output_path,
+            len(result.nodes),
+            len(result.edges),
+        )
 
         min_x, min_y, width, height = self._compute_bounds(result.nodes, options, show_labels)
         view_box = f"0 0 {width:.3f} {height:.3f}"

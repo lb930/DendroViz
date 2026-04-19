@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from .export import CsvExporter, JsonExporter, SvgExporter
@@ -7,6 +8,8 @@ from .input import TreeCsvLoader
 from .layout import TreeLayouter
 from .models import InputFormat, LayoutOptions, LineStyle, RenderResult, TreeLayout, TreeModel
 from .routing import EdgeRouter
+
+logger = logging.getLogger(__name__)
 
 
 class DendrogramGenerator:
@@ -47,9 +50,20 @@ class DendrogramGenerator:
     ) -> RenderResult:
         """Load, lay out, route, and optionally export a tree."""
         resolved_options = options or LayoutOptions()
+        logger.info("Generating tree...")
+        logger.info(
+            "Generating tree from %s (%s) using %s/%s",
+            input_path,
+            input_format,
+            tree_layout,
+            line_style,
+        )
         tree = self.loader.load_tree(input_path, input_format=input_format)
+        logger.debug("Loaded tree with %d nodes", len(tree.nodes))
         TreeLayouter(resolved_options).apply(tree, tree_layout)
+        logger.debug("Applied %s layout", tree_layout)
         edges = EdgeRouter(resolved_options).build_paths(tree, tree_layout, line_style)
+        logger.debug("Built %d routed edges", len(edges))
         result = RenderResult(
             tree=tree,
             edges=edges,
@@ -58,14 +72,18 @@ class DendrogramGenerator:
             line_style=line_style,
         )
         result.csv_rows = self.csv_exporter.build_rows(result, resolved_options)
+        logger.debug("Built %d CSV rows", len(result.csv_rows))
 
         if output_csv is not None:
+            logger.info("Writing CSV output to %s", output_csv)
             result.output_csv = self.csv_exporter.export(output_csv, result.csv_rows)
         if output_json is not None:
+            logger.info("Writing JSON output to %s", output_json)
             result.output_json = self.json_exporter.export(
                 output_json, result, resolved_options, show_labels
             )
         if output_svg is not None:
+            logger.info("Writing SVG output to %s", output_svg)
             result.output_svg = self.svg_exporter.export(
                 output_svg, result, show_labels, resolved_options
             )

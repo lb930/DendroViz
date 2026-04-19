@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import logging
 import sys
 
 from .api import DendrogramGenerator
 from .errors import DendrogramError
 from .models import LayoutOptions
+
+logger = logging.getLogger("dendroviz.cli")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -29,6 +32,12 @@ def build_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--output-csv", help="Path to write the render-ready CSV.")
     build_parser.add_argument("--output-json", help="Path to write the rendered JSON output.")
     build_parser.add_argument("--output-svg", help="Path to write the SVG output.")
+    build_parser.add_argument(
+        "--log-level",
+        choices=["CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG"],
+        default="WARNING",
+        help="Set the logging verbosity for the command.",
+    )
     build_parser.add_argument(
         "--show-labels", action="store_true", help="Show labels in SVG output."
     )
@@ -67,6 +76,11 @@ def main(argv: list[str] | None = None) -> int:
     """Run the command-line entry point."""
     parser = build_parser()
     args = parser.parse_args(argv)
+
+    logging.basicConfig(
+        level=getattr(logging, args.log_level),
+        format="%(levelname)s:%(name)s:%(message)s",
+    )
     generator = DendrogramGenerator()
 
     if args.command != "build":
@@ -77,6 +91,13 @@ def main(argv: list[str] | None = None) -> int:
             "At least one of --output-csv, --output-json, or --output-svg must be provided."
         )
 
+    logger.info(
+        "Building dendrogram from %s (%s) using %s/%s",
+        args.input_path,
+        args.input_format,
+        args.tree_layout,
+        args.line_style,
+    )
     options = LayoutOptions(
         depth_spacing=args.depth_spacing,
         sibling_spacing=args.sibling_spacing,
@@ -111,9 +132,18 @@ def main(argv: list[str] | None = None) -> int:
             options=options,
         )
     except (DendrogramError, ImportError) as exc:
+        logger.error("Failed to build dendrogram: %s", exc)
         print(f"Error: {exc}", file=sys.stderr)
         return 2
+    except Exception:
+        logger.exception("Unexpected error while building dendrogram")
+        return 1
 
+    logger.info(
+        "Generated %d nodes and %d edges",
+        len(result.nodes),
+        len(result.edges),
+    )
     print(
         f"Generated {len(result.nodes)} nodes and {len(result.edges)} edges "
         f"using {result.tree_layout}/{result.line_style}."
