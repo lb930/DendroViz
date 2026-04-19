@@ -60,6 +60,12 @@ def build_parser() -> argparse.ArgumentParser:
         default="set1",
         help="Palette name or comma-separated hex colors, for example set1 or #112233,#445566.",
     )
+    build_parser.add_argument(
+        "--palette-depth",
+        type=int,
+        default=1,
+        help="Tree depth to color when palette mode is enabled.",
+    )
     build_parser.add_argument("--node-color", default="#0f172a")
     build_parser.add_argument("--edge-color", default="#334155")
     build_parser.add_argument("--label-color", default="#111827")
@@ -114,6 +120,7 @@ def main(argv: list[str] | None = None) -> int:
         font_size=args.font_size,
         color_mode=args.color_mode,
         palette=args.palette,
+        palette_depth=args.palette_depth,
         node_color=args.node_color,
         edge_color=args.edge_color,
         label_color=args.label_color,

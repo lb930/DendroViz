@@ -23,6 +23,27 @@ def write_tree_csv() -> tuple[Path, Path]:
     )
 
 
+def write_deep_branch_tree_csv() -> tuple[Path, Path]:
+    """Write a deeper tree used to test palette branch depth coloring."""
+    return write_csv_file(
+        [
+            ["root", "", "Root", "0"],
+            ["a", "root", "A", "0"],
+            ["b", "root", "B", "1"],
+            ["a1", "a", "A1", "0"],
+            ["a2", "a", "A2", "1"],
+            ["b1", "b", "B1", "0"],
+            ["b2", "b", "B2", "1"],
+            ["a1_leaf", "a1", "A1 Leaf", "0"],
+            ["a2_leaf", "a2", "A2 Leaf", "0"],
+            ["b1_leaf", "b1", "B1 Leaf", "0"],
+            ["b2_leaf", "b2", "B2 Leaf", "0"],
+        ],
+        headers=["id", "parent", "label", "order"],
+        filename="deep-branch-tree.csv",
+    )
+
+
 class ExportTests(unittest.TestCase):
     def test_writes_csv_and_svg(self) -> None:
         """Write both CSV and SVG outputs for a sample tree."""
@@ -158,7 +179,7 @@ class ExportTests(unittest.TestCase):
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
-        self.assertNotIn(">Røot</text>", svg_text)
+        self.assertIn(">Røot</text>", svg_text)
         self.assertIn('text-anchor="start"', svg_text)
         self.assertNotIn('text-anchor="middle"', svg_text)
 
@@ -178,7 +199,7 @@ class ExportTests(unittest.TestCase):
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
-        self.assertNotIn(">Røot</text>", svg_text)
+        self.assertIn(">Røot</text>", svg_text)
         self.assertIn(">Ä</text>", svg_text)
         self.assertEqual(svg_text.count("<circle"), 3)
 
@@ -253,6 +274,36 @@ class ExportTests(unittest.TestCase):
         self.assertIn('stroke="#56b4e9"', svg_text)
         self.assertIn('fill="#e69f00"', svg_text)
         self.assertIn('fill="#56b4e9"', svg_text)
+
+    def test_svg_palette_mode_can_color_deeper_branches(self) -> None:
+        """Color a deeper branch level instead of only root children."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_deep_branch_tree_csv()
+        output_svg = directory / "palette-depth.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="vertical",
+            line_style="straight",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(
+                color_mode="palette",
+                palette="set1",
+                palette_depth=2,
+                label_mode="leaves",
+            ),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('stroke="#e41a1c"', svg_text)
+        self.assertIn('stroke="#377eb8"', svg_text)
+        self.assertIn('stroke="#4daf4a"', svg_text)
+        self.assertIn('stroke="#984ea3"', svg_text)
+        self.assertIn('fill="#e41a1c"', svg_text)
+        self.assertIn('fill="#377eb8"', svg_text)
+        self.assertIn('fill="#4daf4a"', svg_text)
+        self.assertIn('fill="#984ea3"', svg_text)
 
     def test_svg_accepts_custom_palette_sequences(self) -> None:
         """Accept a custom palette sequence and cycle it across branches."""

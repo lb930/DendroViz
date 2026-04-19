@@ -146,6 +146,7 @@ class LayoutOptions:
     label_offset: float = 18.0
     color_mode: ColorMode = "global"
     palette: PaletteSpec = "set1"
+    palette_depth: int = 1
     edge_color: str = "#334155"
     node_color: str = "#0f172a"
     label_color: str = "#111827"

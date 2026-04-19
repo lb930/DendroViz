@@ -89,7 +89,8 @@ result = generator.generate_tree(
         label_orientation="auto",
         label_offset=24,
         color_mode="palette",
-        palette="scientific",
+        palette="set2",
+        palette_depth=2,
     ),
 )
 
@@ -109,20 +110,24 @@ dendroviz build examples/dummy_deep.csv \
   --label-orientation auto \
   --label-offset 24 \
   --color-mode palette \
-  --palette scientific
+  --palette set2 \
+  --palette-depth 2
 ```
 
 Example test runs:
 
 ```bash
-PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
+dendroviz build examples/dummy_small.csv \
   --tree-layout vertical \
   --line-style straight \
   --output-csv build/dummy-small-vertical-straight.csv \
   --output-svg build/dummy-small-vertical-straight.svg \
-  --show-labels
+  --show-labels \
+  --color-mode palette \
+  --palette set2 \
+  --palette-depth 2
 
-PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
+dendroviz build examples/dummy_small.csv \
   --tree-layout horizontal \
   --line-style curved \
   --output-csv build/dummy-small-horizontal-curved.csv \
@@ -130,11 +135,11 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
   --show-labels \
   --label-mode all \
   --label-offset 28 \
-  --edge-color '#1d4ed8' \
-  --node-color '#111827' \
-  --label-color '#047857'
+  --color-mode palette \
+  --palette set2 \
+  --palette-depth 2
 
-PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
+dendroviz build examples/dummy_deep.csv \
   --tree-layout radial \
   --line-style split \
   --output-csv build/dummy-deep-radial-split.csv \
@@ -142,7 +147,8 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --show-labels \
   --label-orientation auto \
   --color-mode palette \
-  --palette scientific
+  --palette set2 \
+  --palette-depth 2
 ```
 
 Try it with the included dummy data:
@@ -272,6 +278,7 @@ Custom palettes are also supported:
 - In Python, pass a list or tuple of hex colors to `LayoutOptions.palette`
 - On the CLI, pass a comma-separated hex string with `--palette`, such as `#112233,#445566,#778899`
 - Hex colors are validated before export, so invalid values fail fast
+- Use `palette_depth` in Python or `--palette-depth` on the CLI to color deeper branch levels instead of just the root children
 
 ### Built-In Palettes
 
@@ -287,7 +294,8 @@ Or let the library color each top-level branch automatically:
 
 ```bash
   --color-mode palette \
-  --palette scientific
+  --palette scientific \
+  --palette-depth 2
 ```
 
 <table>

@@ -28,6 +28,27 @@ def write_input_newick() -> tuple[Path, Path]:
     return write_text_file("(child)root;", filename="input.nwk")
 
 
+def write_palette_depth_csv() -> tuple[Path, Path]:
+    """Write a deeper CSV tree for palette-depth CLI tests."""
+    return write_csv_file(
+        [
+            ["root", "", "Root", "0"],
+            ["a", "root", "A", "0"],
+            ["b", "root", "B", "1"],
+            ["a1", "a", "A1", "0"],
+            ["a2", "a", "A2", "1"],
+            ["b1", "b", "B1", "0"],
+            ["b2", "b", "B2", "1"],
+            ["a1_leaf", "a1", "A1 Leaf", "0"],
+            ["a2_leaf", "a2", "A2 Leaf", "0"],
+            ["b1_leaf", "b1", "B1 Leaf", "0"],
+            ["b2_leaf", "b2", "B2 Leaf", "0"],
+        ],
+        headers=["id", "parent", "label", "order"],
+        filename="palette-depth.csv",
+    )
+
+
 class CliTests(unittest.TestCase):
     def test_cli_build_command(self) -> None:
         """Run the build command end to end."""
@@ -301,3 +322,39 @@ class CliTests(unittest.TestCase):
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn('stroke="#112233"', svg_text)
         self.assertIn('fill="#112233"', svg_text)
+
+    def test_cli_accepts_palette_depth_flag(self) -> None:
+        """Accept the palette depth flag on the command line."""
+        directory, input_path = write_palette_depth_csv()
+        output_svg = directory / "palette-depth.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+                "--show-labels",
+                "--color-mode",
+                "palette",
+                "--palette",
+                "set1",
+                "--palette-depth",
+                "2",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('stroke="#e41a1c"', svg_text)
+        self.assertIn('stroke="#377eb8"', svg_text)

@@ -11,6 +11,7 @@ from .errors import ValidationError
 from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
 
 logger = logging.getLogger(__name__)
+PALETTE_FALLBACK_COLOR = "#64748b"
 
 SET1_PALETTE = [
     "#e41a1c",
@@ -135,9 +136,12 @@ def branch_colors_for(result: RenderResult, options: LayoutOptions) -> dict[str,
     if options.color_mode != "palette":
         return {}
     palette = resolve_palette_colors(options.palette)
+    branch_depth = resolve_palette_depth(options.palette_depth)
     return {
-        child.node_id: palette[index % len(palette)]
-        for index, child in enumerate(result.root.children)
+        branch_root.node_id: palette[index % len(palette)]
+        for index, branch_root in enumerate(
+            node for node in result.tree.nodes if node.depth == branch_depth
+        )
     }
 
 
@@ -181,6 +185,29 @@ def _normalize_hex_color(color: object, index: int) -> str:
             f"Palette color {index} must be a hex color in #RRGGBB format: {color!r}"
         )
     return f"#{candidate.lower()}"
+
+
+def resolve_palette_depth(branch_depth: int) -> int:
+    """Validate and normalize the palette depth."""
+    if branch_depth < 1:
+        raise ValidationError("Palette branch depth must be at least 1.")
+    return branch_depth
+
+
+def resolve_branch_root(
+    node: TreeNode,
+    result: RenderResult,
+    branch_depth: int,
+) -> TreeNode | None:
+    """Return the ancestor that anchors palette coloring for a node."""
+    if node.depth < branch_depth:
+        return None
+    current = node
+    while current.depth > branch_depth and current.parent_id is not None:
+        current = result.tree.node_map[current.parent_id]
+    if current.depth != branch_depth:
+        return None
+    return current
 
 
 class CsvExporter:
@@ -236,8 +263,14 @@ class CsvExporter:
         rows: list[dict[str, str | float | int]] = []
         for edge_index, edge in enumerate(result.edges):
             target = result.tree.node_map[edge.target_id]
-            group = self._group_label(target, result)
-            color = self._branch_aware_color(target, result, options.edge_color, branch_colors)
+            group = self._group_label(target, result, options.palette_depth)
+            color = self._branch_aware_color(
+                target,
+                result,
+                PALETTE_FALLBACK_COLOR if options.color_mode == "palette" else options.edge_color,
+                branch_colors,
+                options.palette_depth,
+            )
             for path_index, (x, y) in enumerate(edge.points):
                 rows.append(
                     {
@@ -272,7 +305,7 @@ class CsvExporter:
         return [
             {
                 "type": "node",
-                "group": self._group_label(node, result),
+                "group": self._group_label(node, result, options.palette_depth),
                 "branch_path": self._branch_path(node, result),
                 "id": node.node_id,
                 "parent": node.parent_id or "",
@@ -283,7 +316,17 @@ class CsvExporter:
                 "x": round(node.x, 6),
                 "y": round(node.y, 6),
                 "size": round(options.node_radius, 3),
-                "color": self._branch_aware_color(node, result, options.node_color, branch_colors),
+                "color": self._branch_aware_color(
+                    node,
+                    result,
+                    (
+                        PALETTE_FALLBACK_COLOR
+                        if options.color_mode == "palette"
+                        else options.node_color
+                    ),
+                    branch_colors,
+                    options.palette_depth,
+                ),
                 "depth": node.depth,
                 "tree_layout": result.tree_layout,
                 "line_style": result.line_style,
@@ -297,16 +340,22 @@ class CsvExporter:
         result: RenderResult,
         default_color: str,
         branch_colors: dict[str, str],
+        branch_depth: int,
     ) -> str:
         """Resolve the display color for a node or edge."""
-        branch = result.tree.top_level_branch(node)
+        branch = resolve_branch_root(node, result, branch_depth)
         if branch is None:
             return default_color
         return branch_colors.get(branch.node_id, default_color)
 
-    def _group_label(self, node: TreeNode, result: RenderResult) -> str:
-        """Return the top-level branch label for a node."""
-        branch = result.tree.top_level_branch(node)
+    def _group_label(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        branch_depth: int,
+    ) -> str:
+        """Return the label for the branch depth used by palette coloring."""
+        branch = resolve_branch_root(node, result, branch_depth)
         if branch is None:
             return result.root.label
         return branch.label
@@ -381,6 +430,7 @@ class JsonExporter:
             "label_offset": options.label_offset,
             "color_mode": options.color_mode,
             "palette": options.palette,
+            "palette_depth": options.palette_depth,
             "edge_color": options.edge_color,
             "node_color": options.node_color,
             "label_color": options.label_color,
@@ -406,9 +456,15 @@ class JsonExporter:
             "radius": node.radius,
             "leaf_index": node.leaf_index,
             "is_leaf": node.is_leaf,
-            "group": self._group_label(node, result),
+            "group": self._group_label(node, result, options.palette_depth),
             "branch_path": self._branch_path(node, result),
-            "color": self._branch_aware_color(node, result, options.node_color, branch_colors),
+            "color": self._branch_aware_color(
+                node,
+                result,
+                PALETTE_FALLBACK_COLOR if options.color_mode == "palette" else options.node_color,
+                branch_colors,
+                options.palette_depth,
+            ),
         }
 
     def _edge_payload(
@@ -424,9 +480,15 @@ class JsonExporter:
             "edge_id": edge.edge_id,
             "source_id": edge.source_id,
             "target_id": edge.target_id,
-            "group": self._group_label(node, result),
+            "group": self._group_label(node, result, options.palette_depth),
             "branch_path": self._branch_path(node, result),
-            "color": self._branch_aware_color(node, result, options.edge_color, branch_colors),
+            "color": self._branch_aware_color(
+                node,
+                result,
+                PALETTE_FALLBACK_COLOR if options.color_mode == "palette" else options.edge_color,
+                branch_colors,
+                options.palette_depth,
+            ),
             "points": [{"x": x, "y": y} for x, y in edge.points],
         }
 
@@ -436,16 +498,22 @@ class JsonExporter:
         result: RenderResult,
         default_color: str,
         branch_colors: dict[str, str],
+        branch_depth: int,
     ) -> str:
         """Resolve the display color for a node or edge."""
-        branch = result.tree.top_level_branch(node)
+        branch = resolve_branch_root(node, result, branch_depth)
         if branch is None:
             return default_color
         return branch_colors.get(branch.node_id, default_color)
 
-    def _group_label(self, node: TreeNode, result: RenderResult) -> str:
-        """Return the top-level branch label for a node."""
-        branch = result.tree.top_level_branch(node)
+    def _group_label(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        branch_depth: int,
+    ) -> str:
+        """Return the label for the branch depth used by palette coloring."""
+        branch = resolve_branch_root(node, result, branch_depth)
         if branch is None:
             return result.root.label
         return branch.label
@@ -489,7 +557,16 @@ class SvgExporter:
             for edge in result.edges
         )
         node_elements = "\n".join(
-            self._svg_node(node, min_x, min_y, options, scale, show_labels, result, branch_colors)
+            self._svg_node(
+                node,
+                min_x,
+                min_y,
+                options,
+                scale,
+                show_labels,
+                result,
+                branch_colors,
+            )
             for node in result.nodes
         )
 
@@ -606,6 +683,8 @@ class SvgExporter:
 
     def _should_render_label(self, node: TreeNode, options: LayoutOptions) -> bool:
         """Return whether the node label should be rendered."""
+        if node.parent_id is None:
+            return options.show_root_node and options.label_mode != "none"
         if options.label_mode == "none":
             return False
         if options.label_mode == "leaves":
@@ -694,7 +773,13 @@ class SvgExporter:
     ) -> str:
         """Resolve the stroke color for an edge."""
         node = result.tree.node_map[edge.target_id]
-        return self._branch_aware_color(node, result, options.edge_color, branch_colors)
+        return self._branch_aware_color(
+            node,
+            result,
+            PALETTE_FALLBACK_COLOR if options.color_mode == "palette" else options.edge_color,
+            branch_colors,
+            options.palette_depth,
+        )
 
     def _node_color(
         self,
@@ -704,7 +789,13 @@ class SvgExporter:
         branch_colors: dict[str, str],
     ) -> str:
         """Resolve the fill color for a node."""
-        return self._branch_aware_color(node, result, options.node_color, branch_colors)
+        return self._branch_aware_color(
+            node,
+            result,
+            PALETTE_FALLBACK_COLOR if options.color_mode == "palette" else options.node_color,
+            branch_colors,
+            options.palette_depth,
+        )
 
     def _label_color(
         self,
@@ -714,7 +805,13 @@ class SvgExporter:
         branch_colors: dict[str, str],
     ) -> str:
         """Resolve the fill color for a label."""
-        return self._branch_aware_color(node, result, options.label_color, branch_colors)
+        return self._branch_aware_color(
+            node,
+            result,
+            PALETTE_FALLBACK_COLOR if options.color_mode == "palette" else options.label_color,
+            branch_colors,
+            options.palette_depth,
+        )
 
     def _branch_aware_color(
         self,
@@ -722,9 +819,10 @@ class SvgExporter:
         result: RenderResult,
         fallback_color: str,
         branch_colors: dict[str, str],
+        branch_depth: int,
     ) -> str:
         """Resolve a palette color for the node's branch or use a fallback."""
-        branch = result.tree.top_level_branch(node)
+        branch = resolve_branch_root(node, result, branch_depth)
         if branch is None:
             return fallback_color
         return branch_colors.get(branch.node_id, fallback_color)
