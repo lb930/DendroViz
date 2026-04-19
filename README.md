@@ -6,6 +6,18 @@ It is designed for publication as a reusable Python library, while also includin
 
 The package, CLI, and Python import path are all `dendroviz`.
 
+## Table Of Contents
+
+- [Examples](#examples)
+- [Features](#features)
+- [Installation](#installation)
+- [Quickstart](#quickstart)
+- [Input Format](#input-format)
+- [Leaf Labels](#leaf-labels)
+- [Colour Palettes](#colour-palettes)
+- [How Layout and Line Style Interact](#how-layout-and-line-style-interact)
+- [Development](#development)
+
 ## Examples
 
 <table>
@@ -56,75 +68,6 @@ pip install -e .[dev]
 
 ## Quickstart
 
-### Input CSV format
-
-The library expects a single rooted tree with exactly these columns:
-
-```csv
-id,parent,label,order
-root,,Root,0
-branch_a,root,Branch A,0
-branch_b,root,Branch B,1
-leaf_a1,branch_a,Leaf A1,0
-leaf_a2,branch_a,Leaf A2,1
-leaf_b1,branch_b,Leaf B1,0
-```
-
-Rules:
-
-- `id` must be unique
-- `parent` is empty for the single root row
-- every non-root parent must exist
-- `order` controls sibling order and must be numeric
-- cycles are not allowed
-
-### Input JSON format
-
-JSON input uses the same row fields as CSV. The loader accepts either:
-
-- a top-level array of node objects
-- an object with a `nodes` array
-
-Each node object should include:
-
-- `id`
-- `parent`
-- `label`
-- `order`
-
-Example:
-
-```json
-{
-  "nodes": [
-    { "id": "root", "parent": null, "label": "Root", "order": 0 },
-    { "id": "left", "parent": "root", "label": "Left", "order": 0 },
-    { "id": "right", "parent": "root", "label": "Right", "order": 1 }
-  ]
-}
-```
-
-Rules:
-
-- `id` must be unique
-- `parent` is `null` for the single root row
-- every non-root parent must exist
-- `order` controls sibling order and must be numeric
-- cycles are not allowed
-
-### Input Newick format
-
-Newick input is also supported when BioPython is installed:
-
-```python
-from dendroviz import DendrogramGenerator
-
-generator = DendrogramGenerator()
-tree = generator.load_tree("examples/tree.nwk", input_format="newick")
-```
-
-Sibling order is taken from the order children appear in the Newick file.
-
 ### Python API
 
 ```python
@@ -152,23 +95,6 @@ result = generator.generate_tree(
 
 print(len(result.nodes), len(result.edges))
 ```
-
-To render a Newick file instead:
-
-```python
-result = generator.generate_tree(
-    "examples/tree.nwk",
-    input_format="newick",
-    tree_layout="radial",
-    line_style="split",
-)
-```
-
-Try it with the included dummy data:
-
-- [dummy_small.csv](examples/dummy_small.csv)
-- [dummy_medium.csv](examples/dummy_medium.csv)
-- [dummy_deep.csv](examples/dummy_deep.csv)
 
 ### CLI
 
@@ -219,7 +145,84 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --palette scientific
 ```
 
-### Leaf-only labels and radial outer label placement
+Try it with the included dummy data:
+
+- [dummy_small.csv](examples/dummy_small.csv)
+- [dummy_medium.csv](examples/dummy_medium.csv)
+- [dummy_deep.csv](examples/dummy_deep.csv)
+
+## Input Format
+
+### CSV
+
+The library expects a single rooted tree with exactly these columns:
+
+```csv
+id,parent,label,order
+root,,Root,0
+branch_a,root,Branch A,0
+branch_b,root,Branch B,1
+leaf_a1,branch_a,Leaf A1,0
+leaf_a2,branch_a,Leaf A2,1
+leaf_b1,branch_b,Leaf B1,0
+```
+
+Rules:
+
+- `id` must be unique
+- `parent` is empty for the single root row
+- every non-root parent must exist
+- `order` controls sibling order and must be numeric
+- cycles are not allowed
+
+### JSON
+
+JSON input uses the same row fields as CSV. The loader accepts either:
+
+- a top-level array of node objects
+- an object with a `nodes` array
+
+Each node object should include:
+
+- `id`
+- `parent`
+- `label`
+- `order`
+
+Example:
+
+```json
+{
+  "nodes": [
+    { "id": "root", "parent": null, "label": "Root", "order": 0 },
+    { "id": "left", "parent": "root", "label": "Left", "order": 0 },
+    { "id": "right", "parent": "root", "label": "Right", "order": 1 }
+  ]
+}
+```
+
+Rules:
+
+- `id` must be unique
+- `parent` is `null` for the single root row
+- every non-root parent must exist
+- `order` controls sibling order and must be numeric
+- cycles are not allowed
+
+### Newick
+
+Newick input is also supported when BioPython is installed. Install it with `pip install biopython`:
+
+```python
+from dendroviz import DendrogramGenerator
+
+generator = DendrogramGenerator()
+tree = generator.load_tree("examples/tree.nwk", input_format="newick")
+```
+
+Sibling order is taken from the order children appear in the Newick file.
+
+## Leaf Labels
 
 For a cleaner radial tree where internal nodes stay visible but only leaves get labels:
 
@@ -259,11 +262,18 @@ You can also increase label size with:
   --font-size 18
 ```
 
-To enlarge the entire SVG output without changing the tree structure, add:
+## Colour Palettes
 
-```bash
-  --scale 2
-```
+All built-in palettes below are official ColorBrewer, Tableau, or Okabe-Ito palettes.
+`set1` is the default palette.
+
+Custom palettes are also supported:
+
+- In Python, pass a list or tuple of hex colors to `LayoutOptions.palette`
+- On the CLI, pass a comma-separated hex string with `--palette`, such as `#112233,#445566,#778899`
+- Hex colors are validated before export, so invalid values fail fast
+
+### Built-In Palettes
 
 You can also set SVG colors globally:
 
@@ -279,10 +289,6 @@ Or let the library color each top-level branch automatically:
   --color-mode palette \
   --palette scientific
 ```
-
-Available built-in palettes:
-
-`set1` is the default palette. All built-in palettes below are official ColorBrewer, Tableau, or Okabe-Ito palettes.
 
 <table>
   <tr>
@@ -452,6 +458,14 @@ Available built-in palettes:
 - `curved` line style uses smooth cubic curves
 - `split` line style uses branched orthogonal or radial split paths
 - `straight` line style uses direct line segments
+
+## SVG Options
+
+`--scale` enlarges the generated SVG geometry, strokes, nodes, and text without changing the tree structure. It is convenient for quick previews or docs, but you can also resize the SVG later in Inkscape or another vector editor.
+
+```bash
+  --scale 2
+```
 
 ## Development
 

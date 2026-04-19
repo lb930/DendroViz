@@ -267,3 +267,37 @@ class CliTests(unittest.TestCase):
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
         self.assertIn('font-size="20.000"', output_svg.read_text(encoding="utf-8"))
+
+    def test_cli_accepts_custom_palette_string(self) -> None:
+        """Accept a custom palette string on the command line."""
+        directory, input_path = write_input_csv()
+        output_svg = directory / "custom-palette.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+                "--color-mode",
+                "palette",
+                "--palette",
+                "#112233,#445566",
+                "--show-labels",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('stroke="#112233"', svg_text)
+        self.assertIn('fill="#112233"', svg_text)

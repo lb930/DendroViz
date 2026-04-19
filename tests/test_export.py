@@ -7,6 +7,7 @@ import unittest
 from pathlib import Path
 
 from dendroviz import DendrogramGenerator, LayoutOptions
+from dendroviz.errors import ValidationError
 from tests.helpers import write_csv_file
 
 
@@ -252,6 +253,51 @@ class ExportTests(unittest.TestCase):
         self.assertIn('stroke="#56b4e9"', svg_text)
         self.assertIn('fill="#e69f00"', svg_text)
         self.assertIn('fill="#56b4e9"', svg_text)
+
+    def test_svg_accepts_custom_palette_sequences(self) -> None:
+        """Accept a custom palette sequence and cycle it across branches."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "custom-palette.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(
+                color_mode="palette",
+                palette=["#112233", "#445566"],
+                label_mode="leaves",
+            ),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('stroke="#112233"', svg_text)
+        self.assertIn('stroke="#445566"', svg_text)
+        self.assertIn('fill="#112233"', svg_text)
+        self.assertIn('fill="#445566"', svg_text)
+
+    def test_svg_rejects_invalid_palette_colors(self) -> None:
+        """Reject invalid custom palette colors before exporting."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "invalid-palette.svg"
+
+        with self.assertRaises(ValidationError):
+            generator.generate_tree(
+                input_path,
+                tree_layout="radial",
+                line_style="split",
+                output_svg=output_svg,
+                show_labels=True,
+                options=LayoutOptions(
+                    color_mode="palette",
+                    palette=["#112233", "not-a-color"],
+                    label_mode="leaves",
+                ),
+            )
 
     def test_svg_expands_canvas_for_large_labels(self) -> None:
         """Expand the SVG canvas when labels need more room."""

@@ -3,8 +3,11 @@ import html
 import json
 import logging
 import math
+import re
+from collections.abc import Sequence
 from pathlib import Path
 
+from .errors import ValidationError
 from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
 
 logger = logging.getLogger(__name__)
@@ -131,11 +134,53 @@ def branch_colors_for(result: RenderResult, options: LayoutOptions) -> dict[str,
     """Build per-branch colors when palette mode is enabled."""
     if options.color_mode != "palette":
         return {}
-    palette = PALETTES[options.palette]
+    palette = resolve_palette_colors(options.palette)
     return {
         child.node_id: palette[index % len(palette)]
         for index, child in enumerate(result.root.children)
     }
+
+
+def resolve_palette_colors(palette_spec: object) -> list[str]:
+    """Resolve a palette specification into validated hex colors."""
+    if isinstance(palette_spec, str):
+        candidate = palette_spec.strip()
+        palette = PALETTES.get(candidate.lower())
+        if palette is None:
+            palette = _split_palette_string(candidate)
+    elif isinstance(palette_spec, Sequence):
+        palette = list(palette_spec)
+    else:
+        raise ValidationError(
+            "Palette must be a named palette or a sequence of hex color strings."
+        )
+
+    resolved = [_normalize_hex_color(color, index) for index, color in enumerate(palette, start=1)]
+    if not resolved:
+        raise ValidationError("Palette must contain at least one color.")
+    return resolved
+
+
+def _split_palette_string(palette_spec: str) -> list[str]:
+    """Split a textual palette specification into color strings."""
+    tokens = [token for token in re.split(r"[\s,]+", palette_spec) if token]
+    if not tokens:
+        raise ValidationError("Palette string cannot be empty.")
+    return tokens
+
+
+def _normalize_hex_color(color: object, index: int) -> str:
+    """Validate and normalize a hex color string."""
+    if not isinstance(color, str):
+        raise ValidationError(f"Palette color {index} must be a string.")
+    candidate = color.strip()
+    if candidate.startswith("#"):
+        candidate = candidate[1:]
+    if not re.fullmatch(r"[0-9a-fA-F]{6}", candidate):
+        raise ValidationError(
+            f"Palette color {index} must be a hex color in #RRGGBB format: {color!r}"
+        )
+    return f"#{candidate.lower()}"
 
 
 class CsvExporter:

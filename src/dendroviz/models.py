@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterator, Literal
+from typing import Iterator, Literal, Sequence
 
 TreeLayout = Literal["radial", "vertical", "horizontal"]
 LineStyle = Literal["curved", "split", "straight"]
@@ -22,6 +22,7 @@ PaletteName = Literal[
     "dark2",
     "scientific",
 ]
+PaletteSpec = PaletteName | Sequence[str] | str
 
 
 @dataclass(slots=True)
@@ -144,7 +145,7 @@ class LayoutOptions:
     label_orientation: LabelOrientation = "auto"
     label_offset: float = 18.0
     color_mode: ColorMode = "global"
-    palette: PaletteName = "set1"
+    palette: PaletteSpec = "set1"
     edge_color: str = "#334155"
     node_color: str = "#0f172a"
     label_color: str = "#111827"
