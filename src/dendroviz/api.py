@@ -17,14 +17,17 @@ class DendrogramGenerator:
         csv_exporter: CsvExporter | None = None,
         svg_exporter: SvgExporter | None = None,
     ) -> None:
+        """Create a generator with optional dependency injection."""
         self.loader = loader or TreeCsvLoader()
         self.csv_exporter = csv_exporter or CsvExporter()
         self.svg_exporter = svg_exporter or SvgExporter()
 
     def load_tree_csv(self, path: str | Path) -> TreeModel:
+        """Load a CSV tree file into a tree model."""
         return self.loader.load_tree(path, input_format="csv")
 
     def load_tree(self, path: str | Path, *, input_format: InputFormat = "csv") -> TreeModel:
+        """Load a tree file in the requested input format."""
         return self.loader.load_tree(path, input_format=input_format)
 
     def generate_tree(
@@ -39,6 +42,7 @@ class DendrogramGenerator:
         show_labels: bool = False,
         options: LayoutOptions | None = None,
     ) -> RenderResult:
+        """Load, lay out, route, and optionally export a tree."""
         resolved_options = options or LayoutOptions()
         tree = self.loader.load_tree(input_path, input_format=input_format)
         TreeLayouter(resolved_options).apply(tree, tree_layout)
@@ -55,10 +59,13 @@ class DendrogramGenerator:
         if output_csv is not None:
             result.output_csv = self.csv_exporter.export(output_csv, result.csv_rows)
         if output_svg is not None:
-            result.output_svg = self.svg_exporter.export(output_svg, result, show_labels, resolved_options)
+            result.output_svg = self.svg_exporter.export(
+                output_svg, result, show_labels, resolved_options
+            )
         return result
 
     def export_csv(self, path: str | Path, rows: list[dict[str, str | float | int]]) -> Path:
+        """Write render rows to CSV."""
         return self.csv_exporter.export(path, rows)
 
     def export_svg(
@@ -69,4 +76,5 @@ class DendrogramGenerator:
         show_labels: bool = False,
         options: LayoutOptions | None = None,
     ) -> Path:
+        """Write an SVG rendering for a previously generated tree."""
         return self.svg_exporter.export(path, result, show_labels, options or LayoutOptions())

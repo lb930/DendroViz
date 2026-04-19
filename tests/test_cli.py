@@ -1,37 +1,36 @@
 from __future__ import annotations
 
-import csv
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 
+from tests.helpers import write_csv_file, write_text_file
+
 
 def write_input_csv() -> tuple[Path, Path]:
-    directory = Path(tempfile.mkdtemp())
-    input_path = directory / "input.csv"
-    with input_path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["id", "parent", "label", "order"])
-        writer.writerow(["root", "", "Root", "0"])
-        writer.writerow(["child", "root", "Child", "0"])
-    return directory, input_path
+    """Write a small CSV input tree for CLI tests."""
+    return write_csv_file(
+        [
+            ["root", "", "Root", "0"],
+            ["child", "root", "Child", "0"],
+        ],
+        headers=["id", "parent", "label", "order"],
+        filename="input.csv",
+    )
 
 
 def write_input_newick() -> tuple[Path, Path]:
-    directory = Path(tempfile.mkdtemp())
-    input_path = directory / "input.nwk"
-    input_path.write_text("(child)root;", encoding="utf-8")
-    return directory, input_path
+    """Write a small Newick input tree for CLI tests."""
+    return write_text_file("(child)root;", filename="input.nwk")
 
 
 class CliTests(unittest.TestCase):
     def test_cli_build_command(self) -> None:
+        """Run the build command end to end."""
         directory, input_path = write_input_csv()
         output_csv = directory / "out.csv"
         output_svg = directory / "out.svg"
-        env = {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
 
         completed = subprocess.run(
             [
@@ -53,7 +52,6 @@ class CliTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            env=env,
         )
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
@@ -62,8 +60,8 @@ class CliTests(unittest.TestCase):
         self.assertIn("Generated", completed.stdout)
 
     def test_cli_requires_an_output(self) -> None:
+        """Reject builds that do not request any output artifact."""
         _, input_path = write_input_csv()
-        env = {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
 
         completed = subprocess.run(
             [
@@ -80,14 +78,13 @@ class CliTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            env=env,
         )
 
         self.assertNotEqual(completed.returncode, 0)
 
     def test_cli_accepts_newick_input_format_flag(self) -> None:
+        """Accept the Newick input-format flag and surface missing dependency errors."""
         _, input_path = write_input_newick()
-        env = {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
 
         completed = subprocess.run(
             [
@@ -108,16 +105,15 @@ class CliTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            env=env,
         )
 
         self.assertNotEqual(completed.returncode, 0)
         self.assertIn("BioPython", completed.stderr)
 
     def test_cli_accepts_font_size_flag(self) -> None:
+        """Accept the font-size flag and apply it to SVG output."""
         directory, input_path = write_input_csv()
         output_svg = directory / "out.svg"
-        env = {"PYTHONPATH": str(Path(__file__).resolve().parents[1] / "src")}
 
         completed = subprocess.run(
             [
@@ -139,7 +135,6 @@ class CliTests(unittest.TestCase):
             check=False,
             capture_output=True,
             text=True,
-            env=env,
         )
 
         self.assertEqual(completed.returncode, 0, completed.stderr)

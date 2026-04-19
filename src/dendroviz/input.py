@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 from .errors import ValidationError
 from .models import InputFormat, InputNode, TreeModel, TreeNode
@@ -12,6 +12,7 @@ class TreeCsvLoader:
     REQUIRED_COLUMNS = ("id", "parent", "label", "order")
 
     def load_rows(self, path: str | Path, *, input_format: InputFormat = "csv") -> list[InputNode]:
+        """Load raw input rows in the requested format."""
         if input_format == "csv":
             return self._load_csv_rows(path)
         if input_format == "newick":
@@ -19,6 +20,7 @@ class TreeCsvLoader:
         raise ValidationError(f"Unsupported input format: {input_format}")
 
     def _load_csv_rows(self, path: str | Path) -> list[InputNode]:
+        """Load and validate rows from a CSV file."""
         csv_path = Path(path)
         if not csv_path.exists():
             raise ValidationError(f"Input CSV does not exist: {csv_path}")
@@ -26,7 +28,9 @@ class TreeCsvLoader:
         with csv_path.open("r", encoding="utf-8", newline="") as handle:
             reader = csv.DictReader(handle)
             self._validate_headers(reader.fieldnames)
-            nodes = [self._parse_row(row, row_number) for row_number, row in enumerate(reader, start=2)]
+            nodes = [
+                self._parse_row(row, row_number) for row_number, row in enumerate(reader, start=2)
+            ]
 
         if not nodes:
             raise ValidationError("Input CSV contains headers but no data rows.")
@@ -35,12 +39,13 @@ class TreeCsvLoader:
         return nodes
 
     def _load_newick_rows(self, path: str | Path) -> list[InputNode]:
+        """Load and normalize rows from a Newick file."""
         newick_path = Path(path)
         if not newick_path.exists():
             raise ValidationError(f"Input Newick file does not exist: {newick_path}")
 
         try:
-            from Bio import Phylo
+            from Bio import Phylo  # type: ignore[import-not-found]
         except ImportError as exc:
             raise ImportError(
                 "Newick support requires BioPython. Install it with: pip install biopython"
@@ -60,8 +65,11 @@ class TreeCsvLoader:
         next_id = 0
 
         def build_node_id(label: str) -> str:
+            """Build a stable node id from a clade label."""
             nonlocal next_id
-            base_label = "".join(character if character.isalnum() else "_" for character in label.strip()).strip("_")
+            base_label = "".join(
+                character if character.isalnum() else "_" for character in label.strip()
+            ).strip("_")
             if base_label:
                 candidate = base_label
                 suffix = 2
@@ -80,6 +88,7 @@ class TreeCsvLoader:
             return candidate
 
         def visit(clade: Any, parent_id: str | None, order: int) -> None:
+            """Traverse a Newick clade tree and collect input nodes."""
             label = str(getattr(clade, "name", "") or "")
             node_id = build_node_id(label)
             nodes.append(
@@ -99,9 +108,11 @@ class TreeCsvLoader:
         return nodes
 
     def load_tree(self, path: str | Path, *, input_format: InputFormat = "csv") -> TreeModel:
+        """Load rows and convert them into a tree model."""
         return self.build_tree(self.load_rows(path, input_format=input_format))
 
     def build_tree(self, nodes: list[InputNode]) -> TreeModel:
+        """Build a tree model from validated input nodes."""
         tree_nodes = {
             node.node_id: TreeNode(
                 node_id=node.node_id,
@@ -125,7 +136,8 @@ class TreeCsvLoader:
         ordered_nodes = self._assign_depths_and_collect(root, depth=0)
         return TreeModel(root=root, nodes=ordered_nodes, node_map=tree_nodes)
 
-    def _validate_headers(self, fieldnames: list[str] | None) -> None:
+    def _validate_headers(self, fieldnames: Sequence[str] | None) -> None:
+        """Validate the CSV header names."""
         if fieldnames is None:
             raise ValidationError("Input CSV is empty.")
         if tuple(fieldnames) != self.REQUIRED_COLUMNS:
@@ -135,6 +147,7 @@ class TreeCsvLoader:
             )
 
     def _parse_row(self, row: dict[str, str | None], row_number: int) -> InputNode:
+        """Parse one CSV row into an input node."""
         node_id = (row["id"] or "").strip()
         parent_raw = (row["parent"] or "").strip()
         label = (row["label"] or "").strip()
@@ -157,12 +170,14 @@ class TreeCsvLoader:
         )
 
     def _validate_rows(self, nodes: list[InputNode]) -> None:
+        """Run all row-level validation checks."""
         self._validate_unique_ids(nodes)
         self._validate_single_root(nodes)
         self._validate_parents_exist(nodes)
         self._validate_no_cycles(nodes)
 
     def _validate_unique_ids(self, nodes: list[InputNode]) -> None:
+        """Reject duplicate node ids."""
         seen: set[str] = set()
         duplicates: set[str] = set()
         for node in nodes:
@@ -174,22 +189,28 @@ class TreeCsvLoader:
             raise ValidationError(f"Duplicate id values found: {duplicate_text}")
 
     def _validate_single_root(self, nodes: list[InputNode]) -> None:
+        """Require exactly one root row."""
         roots = [node.node_id for node in nodes if node.parent_id is None]
         if len(roots) != 1:
             raise ValidationError(f"Exactly one root row is required, found {len(roots)}.")
 
     def _validate_parents_exist(self, nodes: list[InputNode]) -> None:
+        """Reject parent ids that do not exist in the input."""
         ids = {node.node_id for node in nodes}
-        missing = sorted({node.parent_id for node in nodes if node.parent_id and node.parent_id not in ids})
+        missing = sorted(
+            {node.parent_id for node in nodes if node.parent_id and node.parent_id not in ids}
+        )
         if missing:
             raise ValidationError(f"Missing parent ids referenced by rows: {', '.join(missing)}")
 
     def _validate_no_cycles(self, nodes: list[InputNode]) -> None:
+        """Reject cyclic parent relationships."""
         parent_by_id = {node.node_id: node.parent_id for node in nodes}
         visited: set[str] = set()
         active: set[str] = set()
 
         def visit(node_id: str) -> None:
+            """Walk the parent chain for cycle detection."""
             if node_id in active:
                 raise ValidationError("Input tree contains a cycle.")
             if node_id in visited:
@@ -205,6 +226,7 @@ class TreeCsvLoader:
             visit(node_id)
 
     def _assign_depths_and_collect(self, root: TreeNode, depth: int) -> list[TreeNode]:
+        """Assign depths recursively and collect nodes in preorder."""
         root.depth = depth
         root.sort_children()
         ordered_nodes = [root]

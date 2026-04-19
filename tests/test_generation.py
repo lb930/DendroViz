@@ -1,33 +1,30 @@
 from __future__ import annotations
 
-import csv
-import sys
-import tempfile
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-
 from dendroviz import DendrogramGenerator, LayoutOptions
+from tests.helpers import write_csv_file
 
 
 def write_sample_tree() -> Path:
-    directory = Path(tempfile.mkdtemp())
-    path = directory / "tree.csv"
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(["id", "parent", "label", "order"])
-        writer.writerow(["root", "", "Root", "0"])
-        writer.writerow(["left", "root", "Left", "0"])
-        writer.writerow(["right", "root", "Right", "1"])
-        writer.writerow(["left_a", "left", "Left A", "0"])
-        writer.writerow(["left_b", "left", "Left B", "1"])
-        writer.writerow(["right_a", "right", "Right A", "0"])
-    return path
+    """Write a sample tree CSV used by layout tests."""
+    return write_csv_file(
+        [
+            ["root", "", "Root", "0"],
+            ["left", "root", "Left", "0"],
+            ["right", "root", "Right", "1"],
+            ["left_a", "left", "Left A", "0"],
+            ["left_b", "left", "Left B", "1"],
+            ["right_a", "right", "Right A", "0"],
+        ],
+        headers=["id", "parent", "label", "order"],
+    )[1]
 
 
 class GenerationTests(unittest.TestCase):
     def test_all_layout_and_line_combinations(self) -> None:
+        """Exercise every supported layout and line-style combination."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         layouts = ["radial", "vertical", "horizontal"]
@@ -36,13 +33,16 @@ class GenerationTests(unittest.TestCase):
         for layout in layouts:
             for line_style in line_styles:
                 with self.subTest(layout=layout, line_style=line_style):
-                    result = generator.generate_tree(path, tree_layout=layout, line_style=line_style)
+                    result = generator.generate_tree(
+                        path, tree_layout=layout, line_style=line_style
+                    )
                     self.assertEqual(len(result.nodes), 6)
                     self.assertEqual(len(result.edges), 5)
                     self.assertTrue(result.csv_rows)
                     self.assertEqual(result.nodes[0].node_id, "root")
 
     def test_vertical_layout_positions_depth_on_y_axis(self) -> None:
+        """Verify vertical layout maps depth onto the y axis."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="vertical", line_style="straight")
@@ -52,6 +52,7 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(ys["left"], depths["left"] * LayoutOptions().depth_spacing)
 
     def test_horizontal_layout_positions_depth_on_x_axis(self) -> None:
+        """Verify horizontal layout maps depth onto the x axis."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="horizontal", line_style="straight")
@@ -60,6 +61,7 @@ class GenerationTests(unittest.TestCase):
         self.assertGreater(left.x, result.root.x)
 
     def test_radial_layout_assigns_leaf_angles(self) -> None:
+        """Verify radial layout assigns angles to all leaves."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="radial", line_style="curved")
@@ -67,9 +69,12 @@ class GenerationTests(unittest.TestCase):
         self.assertTrue(all(angle is not None for angle in leaf_angles))
 
     def test_custom_spacing_changes_output(self) -> None:
+        """Verify custom spacing values alter node coordinates."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
-        default_result = generator.generate_tree(path, tree_layout="vertical", line_style="straight")
+        default_result = generator.generate_tree(
+            path, tree_layout="vertical", line_style="straight"
+        )
         custom_result = generator.generate_tree(
             path,
             tree_layout="vertical",
@@ -82,6 +87,7 @@ class GenerationTests(unittest.TestCase):
         )
 
     def test_radial_split_includes_arc_segment(self) -> None:
+        """Verify split radial routing includes an arc segment."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="radial", line_style="split")
@@ -101,6 +107,7 @@ class GenerationTests(unittest.TestCase):
         self.assertEqual(radii[-1], child_radius)
 
     def test_radial_split_places_internal_child_on_arc_ring(self) -> None:
+        """Verify split radial routing keeps internal children on the arc ring."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="radial", line_style="split")
@@ -114,6 +121,7 @@ class GenerationTests(unittest.TestCase):
         self.assertAlmostEqual(edge.points[-1][1], child.y)
 
     def test_vertical_split_places_internal_node_at_branch_fork(self) -> None:
+        """Verify vertical split routing forks at the expected depth."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="vertical", line_style="split")
@@ -122,10 +130,13 @@ class GenerationTests(unittest.TestCase):
 
         self.assertAlmostEqual(edge.points[-1][0], child.x)
         self.assertAlmostEqual(edge.points[-1][1], child.y)
-        branch_y = round(result.root.y + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3)
+        branch_y = round(
+            result.root.y + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3
+        )
         self.assertGreater(sum(1 for _, y in edge.points if round(y, 3) == branch_y), 3)
 
     def test_horizontal_split_places_internal_node_at_branch_fork(self) -> None:
+        """Verify horizontal split routing forks at the expected depth."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
         result = generator.generate_tree(path, tree_layout="horizontal", line_style="split")
@@ -134,5 +145,7 @@ class GenerationTests(unittest.TestCase):
 
         self.assertAlmostEqual(edge.points[-1][0], child.x)
         self.assertAlmostEqual(edge.points[-1][1], child.y)
-        branch_x = round(result.root.x + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3)
+        branch_x = round(
+            result.root.x + (LayoutOptions().depth_spacing * LayoutOptions().root_fork_fraction), 3
+        )
         self.assertGreater(sum(1 for x, _ in edge.points if round(x, 3) == branch_x), 3)

@@ -1,56 +1,39 @@
 from __future__ import annotations
 
-import csv
 import sys
-import tempfile
 import types
 import unittest
-from pathlib import Path
 from unittest import mock
-
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from dendroviz.api import DendrogramGenerator
 from dendroviz.errors import ValidationError
-
-
-def write_csv(rows: list[dict[str, str]], headers: list[str] | None = None) -> Path:
-    directory = Path(tempfile.mkdtemp())
-    path = directory / "tree.csv"
-    with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=headers or ["id", "parent", "label", "order"])
-        writer.writeheader()
-        writer.writerows(rows)
-    return path
-
-
-def write_newick(contents: str) -> Path:
-    directory = Path(tempfile.mkdtemp())
-    path = directory / "tree.nwk"
-    path.write_text(contents, encoding="utf-8")
-    return path
+from tests.helpers import write_csv_dict_file, write_text_file
 
 
 class FakeClade:
     def __init__(self, name: str | None = None, clades: list["FakeClade"] | None = None) -> None:
+        """Create a lightweight fake clade for Newick tests."""
         self.name = name
         self.clades = clades or []
 
 
 class FakeTree:
     def __init__(self, root: FakeClade) -> None:
+        """Create a lightweight fake tree for Newick tests."""
         self.root = root
 
 
 class LoadTreeCsvTests(unittest.TestCase):
     def test_loads_valid_tree(self) -> None:
+        """Load a valid CSV tree and preserve node ordering."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [
                 {"id": "root", "parent": "", "label": "Root", "order": "0"},
                 {"id": "child_b", "parent": "root", "label": "Child B", "order": "1"},
                 {"id": "child_a", "parent": "root", "label": "Child A", "order": "0"},
-            ]
+            ],
+            headers=["id", "parent", "label", "order"],
         )
 
         tree = generator.load_tree_csv(path)
@@ -59,8 +42,9 @@ class LoadTreeCsvTests(unittest.TestCase):
         self.assertEqual([node.node_id for node in tree.nodes], ["root", "child_a", "child_b"])
 
     def test_rejects_wrong_headers(self) -> None:
+        """Reject CSV files whose headers do not match the schema."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [{"name": "root"}],
             headers=["name"],
         )
@@ -68,62 +52,73 @@ class LoadTreeCsvTests(unittest.TestCase):
             generator.load_tree_csv(path)
 
     def test_rejects_duplicate_ids(self) -> None:
+        """Reject duplicate node ids in CSV input."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [
                 {"id": "root", "parent": "", "label": "Root", "order": "0"},
                 {"id": "root", "parent": "", "label": "Other Root", "order": "1"},
-            ]
+            ],
+            headers=["id", "parent", "label", "order"],
         )
         with self.assertRaises(ValidationError):
             generator.load_tree_csv(path)
 
     def test_rejects_missing_parents(self) -> None:
+        """Reject CSV rows that reference missing parents."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [
                 {"id": "root", "parent": "", "label": "Root", "order": "0"},
                 {"id": "child", "parent": "ghost", "label": "Child", "order": "0"},
-            ]
+            ],
+            headers=["id", "parent", "label", "order"],
         )
         with self.assertRaises(ValidationError):
             generator.load_tree_csv(path)
 
     def test_rejects_multiple_roots(self) -> None:
+        """Reject CSV input with more than one root row."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [
                 {"id": "root_a", "parent": "", "label": "Root A", "order": "0"},
                 {"id": "root_b", "parent": "", "label": "Root B", "order": "1"},
-            ]
+            ],
+            headers=["id", "parent", "label", "order"],
         )
         with self.assertRaises(ValidationError):
             generator.load_tree_csv(path)
 
     def test_rejects_cycle(self) -> None:
+        """Reject CSV input that forms a cycle."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [
                 {"id": "root", "parent": "child", "label": "Root", "order": "0"},
                 {"id": "child", "parent": "root", "label": "Child", "order": "0"},
-            ]
+            ],
+            headers=["id", "parent", "label", "order"],
         )
         with self.assertRaises(ValidationError):
             generator.load_tree_csv(path)
 
     def test_rejects_non_numeric_order(self) -> None:
+        """Reject non-numeric order values in CSV input."""
         generator = DendrogramGenerator()
-        path = write_csv(
+        _, path = write_csv_dict_file(
             [
                 {"id": "root", "parent": "", "label": "Root", "order": "a"},
-            ]
+            ],
+            headers=["id", "parent", "label", "order"],
         )
         with self.assertRaises(ValidationError):
             generator.load_tree_csv(path)
 
     def test_loads_newick_tree_with_soft_dependency(self) -> None:
+        """Load a Newick tree through a mocked BioPython dependency."""
         generator = DendrogramGenerator()
-        path = write_newick("(ignored);")
+        _, path = write_text_file("(ignored);", filename="tree.nwk")
         fake_tree = FakeTree(
             FakeClade(
                 "Root",
@@ -144,12 +139,20 @@ class LoadTreeCsvTests(unittest.TestCase):
         fake_phylo.read.assert_called_once_with(str(path), "newick")
 
     def test_newick_requires_biopython_when_requested(self) -> None:
+        """Raise ImportError when Newick support is requested without BioPython."""
         generator = DendrogramGenerator()
-        path = write_newick("(a,b)root;")
+        _, path = write_text_file("(a,b)root;", filename="tree.nwk")
 
         original_import = __import__
 
-        def raising_import(name: str, globals: object = None, locals: object = None, fromlist: tuple[str, ...] = (), level: int = 0) -> object:
+        def raising_import(
+            name: str,
+            globals: object = None,
+            locals: object = None,
+            fromlist: tuple[str, ...] = (),
+            level: int = 0,
+        ) -> object:
+            """Pretend that BioPython is unavailable."""
             if name == "Bio":
                 raise ImportError("No module named Bio")
             return original_import(name, globals, locals, fromlist, level)
