@@ -107,8 +107,8 @@ result = generator.generate_tree(
     output_svg="build/dummy-deep-radial-split.svg",
     show_labels=True,
     options=LayoutOptions(
-        label_mode="leaves",
-        show_internal_nodes=False,
+        label_mode="all",
+        show_internal_nodes=True,
         show_root_node=True,
         label_orientation="auto",
         label_offset=24,
@@ -192,6 +192,8 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
   --output-csv build/dummy-small-horizontal-curved.csv \
   --output-svg build/dummy-small-horizontal-curved.svg \
   --show-labels \
+  --label-mode all \
+  --label-offset 28 \
   --edge-color '#1d4ed8' \
   --node-color '#111827' \
   --label-color '#047857'
@@ -202,8 +204,6 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --output-csv build/dummy-deep-radial-split.csv \
   --output-svg build/dummy-deep-radial-split.svg \
   --show-labels \
-  --label-mode leaves \
-  --hide-internal-nodes \
   --label-orientation auto \
   --color-mode palette \
   --palette scientific
@@ -219,8 +219,6 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --line-style split \
   --output-svg build/dummy-deep-radial-split.svg \
   --show-labels \
-  --label-mode leaves \
-  --hide-internal-nodes \
   --label-orientation auto
 ```
 

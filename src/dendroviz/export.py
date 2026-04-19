@@ -419,8 +419,28 @@ class SvgExporter:
                 f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}" />'
             )
         if show_labels and self._should_render_label(node, options):
-            parts.append(self._svg_label(node, x, y, options, scale, result, branch_colors))
+            parts.append(
+                self._svg_label(
+                    node,
+                    x,
+                    y,
+                    options,
+                    scale,
+                    result,
+                    branch_colors,
+                    self._layout_for_node(node, result),
+                )
+            )
         return "\n".join(parts)
+
+    def _layout_for_node(self, node: TreeNode, result: RenderResult) -> str:
+        """Infer the rendered tree layout from a node's coordinates."""
+        if node.angle is not None and node.radius is not None:
+            return "radial"
+        root = result.root
+        if abs(root.y - node.y) > abs(root.x - node.x):
+            return "vertical"
+        return "horizontal"
 
     def _should_render_node(self, node: TreeNode, options: LayoutOptions) -> bool:
         """Return whether the node marker should be rendered."""
@@ -447,6 +467,7 @@ class SvgExporter:
         scale: float,
         result: RenderResult,
         branch_colors: dict[str, str],
+        tree_layout: str,
     ) -> str:
         """Render a non-radial SVG label."""
         label_color = self._label_color(node, result, options, branch_colors)
@@ -463,12 +484,23 @@ class SvgExporter:
                 scale,
                 label_color,
             )
-        label_x = x + ((options.node_radius + options.label_offset) * scale)
-        label_y = y
+        if tree_layout == "horizontal":
+            if node.is_leaf or options.label_mode == "leaves":
+                label_x = x + ((options.node_radius + options.label_offset) * scale)
+                label_y = y
+                anchor = "start"
+            else:
+                label_x = x
+                label_y = y - ((options.node_radius + options.label_offset) * scale)
+                anchor = "middle"
+        else:
+            label_x = x + ((options.node_radius + options.label_offset) * scale)
+            label_y = y
+            anchor = "start"
         return (
             f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
             f'font-size="{options.font_size * scale:.3f}" fill="{label_color}" '
-            f'dominant-baseline="middle">'
+            f'text-anchor="{anchor}" dominant-baseline="middle">'
             f"{html.escape(node.label)}</text>"
         )
 

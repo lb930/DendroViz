@@ -123,6 +123,44 @@ class ExportTests(unittest.TestCase):
         self.assertNotIn("Røot</text>", svg_text)
         self.assertIn("<path", svg_text)
 
+    def test_horizontal_svg_places_labels_outside_the_tree(self) -> None:
+        """Place horizontal internal labels above their nodes."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "horizontal.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="horizontal",
+            line_style="curved",
+            output_svg=output_svg,
+            show_labels=True,
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('text-anchor="middle"', svg_text)
+        self.assertIn('>Røot</text>', svg_text)
+
+    def test_horizontal_svg_leaf_labels_use_right_alignment(self) -> None:
+        """Place horizontal leaf labels to the right of the nodes."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "horizontal-leaves.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="horizontal",
+            line_style="curved",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(label_mode="leaves", show_internal_nodes=False),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertNotIn(">Røot</text>", svg_text)
+        self.assertIn('text-anchor="start"', svg_text)
+        self.assertNotIn('text-anchor="middle"', svg_text)
+
     def test_svg_can_hide_internal_nodes_and_show_leaf_labels_only(self) -> None:
         """Hide internal markers while still rendering leaf labels."""
         generator = DendrogramGenerator()
