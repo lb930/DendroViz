@@ -110,7 +110,7 @@ class DendrogramGenerator:
                     ", ".join(label_overrides),
                 )
 
-        if options.color_mode == "global":
+        if options.colour_mode == "global":
             palette_overrides: list[str] = []
             if options.palette != defaults.palette:
                 palette_overrides.append("--palette")
@@ -118,21 +118,21 @@ class DendrogramGenerator:
                 palette_overrides.append("--palette-depth")
             if palette_overrides:
                 logger.warning(
-                    "Palette settings %s are ignored unless --color-mode palette is set.",
+                    "Palette colour settings %s are ignored unless --colour-mode palette is set.",
                     ", ".join(palette_overrides),
                 )
         else:
-            color_overrides: list[str] = []
-            if options.node_color != defaults.node_color:
-                color_overrides.append("--node-color")
-            if options.edge_color != defaults.edge_color:
-                color_overrides.append("--edge-color")
-            if options.label_color != defaults.label_color:
-                color_overrides.append("--label-color")
-            if color_overrides:
+            colour_overrides: list[str] = []
+            if options.node_colour != defaults.node_colour:
+                colour_overrides.append("--node-colour")
+            if options.edge_colour != defaults.edge_colour:
+                colour_overrides.append("--edge-colour")
+            if options.label_colour != defaults.label_colour:
+                colour_overrides.append("--label-colour")
+            if colour_overrides:
                 logger.warning(
-                    "Global color settings %s are ignored when --color-mode palette is set.",
-                    ", ".join(color_overrides),
+                    "Global colour settings %s are ignored when --colour-mode palette is set.",
+                    ", ".join(colour_overrides),
                 )
 
     def _validate_options(self, options: LayoutOptions) -> None:

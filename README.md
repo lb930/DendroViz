@@ -1,15 +1,10 @@
 # DendroViz
 
-`DendroViz` turns a rooted tree input into a scaffolded dendrogram dataset and optional SVG output, making it a good fit for downstream use in Tableau and other visualization tools.
+`DendroViz` takes CSV, JSON, or Newick input and turns it into a dendrogram dataset. The CSV output can be used in Tableau and other charting tools. The tool can also create SVG images.
 
-It is designed for publication as a reusable Python library, while also including a small CLI for direct file conversion.
-
-The package, CLI, and Python import path are all `dendroviz`.
-
-## Table Of Contents
+## Table of Contents
 
 - [Examples](#examples)
-- [Features](#features)
 - [Installation](#installation)
 - [Quickstart](#quickstart)
 - [Input Format](#input-format)
@@ -35,17 +30,6 @@ The package, CLI, and Python import path are all `dendroviz`.
     </td>
   </tr>
 </table>
-
-## Features
-
-- Tree layouts: `radial`, `vertical`, `horizontal`
-- Line styles: `curved`, `split`, `straight`
-- Any layout can be combined with any line style
-- Arbitrary tree depth
-- SVG export with labels on or off
-- SVG controls for leaf-only labels, root/internal node visibility, and colors
-- Deterministic sibling ordering from CSV
-- Optional Newick support through BioPython
 
 ## Installation
 
@@ -87,7 +71,7 @@ result = generator.generate_tree(
         show_root_node=True,
         label_orientation="auto",
         label_offset=24,
-        color_mode="palette",
+        colour_mode="palette",
         palette="set2",
         palette_depth=2,
     ),
@@ -108,7 +92,7 @@ dendroviz build examples/dummy_deep.csv \
   --label-mode leaves \
   --label-orientation auto \
   --label-offset 24 \
-  --color-mode palette \
+  --colour-mode palette \
   --palette set2 \
   --palette-depth 2
 ```
@@ -122,7 +106,7 @@ dendroviz build examples/dummy_small.csv \
   --output-csv build/dummy-small-vertical-straight.csv \
   --output-svg build/dummy-small-vertical-straight.svg \
   --show-labels \
-  --color-mode palette \
+  --colour-mode palette \
   --palette set2 \
   --palette-depth 2
 
@@ -134,7 +118,7 @@ dendroviz build examples/dummy_small.csv \
   --show-labels \
   --label-mode all \
   --label-offset 28 \
-  --color-mode palette \
+  --colour-mode palette \
   --palette set2 \
   --palette-depth 2
 
@@ -145,7 +129,7 @@ dendroviz build examples/dummy_deep.csv \
   --output-svg build/dummy-deep-radial-split.svg \
   --show-labels \
   --label-orientation auto \
-  --color-mode palette \
+  --colour-mode palette \
   --palette set2 \
   --palette-depth 2
 ```
@@ -233,11 +217,11 @@ Sibling order is taken from the order children appear in the Newick file.
 
 | Option | Values | Notes |
 | --- | --- | --- |
-| `build` | subcommand | Generate dendrogram artifacts from an input tree |
+| `build` | subcommand | Generate dendrogram artefacts from an input tree |
 | input path | path | Path to the input tree file |
 | `--tree-layout` | `radial`, `vertical`, `horizontal` | `radial` uses angle/radius coordinates, `vertical` grows top-to-bottom, `horizontal` grows left-to-right |
 | `--line-style` | `curved`, `split`, `straight` | `curved` uses smooth splines, `split` branches at forks, `straight` uses direct segments |
-| output flag(s) | `--output-csv`, `--output-json`, `--output-svg` | Write one or more render artifacts |
+| output flag(s) | `--output-csv`, `--output-json`, `--output-svg` | Write one or more render artefacts |
 
 ### Optional
 
@@ -253,12 +237,12 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | `--font-size` | number | Controls label size |
 | `--hide-internal-nodes` | flag | Hides non-leaf node markers |
 | `--hide-root-node` | flag | Hides the root node marker |
-| `--color-mode` | `global`, `palette` | Controls whether palette coloring is used |
-| `--palette` | preset name or hex colors | Used only when `--color-mode palette` is active |
-| `--palette-depth` | `1`, `2`, ... | Used only when `--color-mode palette` is active; chooses which tree level gets palette coloring |
-| `--node-color` | hex color | Fallback node color in global mode |
-| `--edge-color` | hex color | Fallback edge color in global mode |
-| `--label-color` | hex color | Fallback label color in global mode |
+| `--colour-mode` | `global`, `palette` | Controls whether palette colouring is used |
+| `--palette` | preset name or hex colours | Used only when `--colour-mode palette` is active |
+| `--palette-depth` | `1`, `2`, ... | Used only when `--colour-mode palette` is active; chooses which tree level gets palette colouring |
+| `--node-colour` | hex colour | Fallback node colour in global mode |
+| `--edge-colour` | hex colour | Fallback edge colour in global mode |
+| `--label-colour` | hex colour | Fallback label colour in global mode |
 | `--depth-spacing` | number | Adjusts the gap between tree levels |
 | `--sibling-spacing` | number | Adjusts the gap between siblings |
 | `--curve-points` | number | Controls curved path smoothness |
@@ -274,9 +258,9 @@ All built-in palettes below are official ColorBrewer, Tableau, or Okabe-Ito pale
 
 Custom palettes are also supported:
 
-- In Python, pass a list or tuple of hex colors to `LayoutOptions.palette`
+- In Python, pass a list or tuple of hex colours to `LayoutOptions.palette`
 - On the CLI, pass a comma-separated hex string with `--palette`, such as `#112233,#445566,#778899`
-- Hex colors are validated before export, so invalid values fail fast
+- Hex colours are validated before export, so invalid values fail fast
 
 ### Built-In Palettes
 

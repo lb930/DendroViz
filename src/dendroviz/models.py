@@ -9,7 +9,7 @@ LineStyle = Literal["curved", "split", "straight"]
 InputFormat = Literal["csv", "newick", "json"]
 LabelMode = Literal["all", "leaves", "none"]
 LabelOrientation = Literal["horizontal", "auto"]
-ColorMode = Literal["global", "palette"]
+ColourMode = Literal["global", "palette"]
 PaletteName = Literal[
     "set1",
     "set2",
@@ -144,12 +144,12 @@ class LayoutOptions:
     label_mode: LabelMode = "all"
     label_orientation: LabelOrientation = "auto"
     label_offset: float = 18.0
-    color_mode: ColorMode = "global"
+    colour_mode: ColourMode = "global"
     palette: PaletteSpec = "set1"
     palette_depth: int = 1
-    edge_color: str = "#334155"
-    node_color: str = "#0f172a"
-    label_color: str = "#111827"
+    edge_colour: str = "#334155"
+    node_colour: str = "#0f172a"
+    label_colour: str = "#111827"
 
 
 @dataclass(slots=True)

@@ -24,7 +24,7 @@ def write_tree_csv() -> tuple[Path, Path]:
 
 
 def write_deep_branch_tree_csv() -> tuple[Path, Path]:
-    """Write a deeper tree used to test palette branch depth coloring."""
+    """Write a deeper tree used to test palette branch depth colouring."""
     return write_csv_file(
         [
             ["root", "", "Root", "0"],
@@ -68,7 +68,7 @@ class ExportTests(unittest.TestCase):
         csv_text = output_csv.read_text(encoding="utf-8")
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn(
-            "type,group,branch_path,id,parent,child,label,index,path,x,y,size,color,depth,tree_layout,line_style",
+            "type,group,branch_path,id,parent,child,label,index,path,x,y,size,colour,depth,tree_layout,line_style",
             csv_text,
         )
         self.assertIn("Røot", svg_text)
@@ -225,8 +225,8 @@ class ExportTests(unittest.TestCase):
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertEqual(svg_text.count("<circle"), 2)
 
-    def test_svg_radial_leaf_labels_use_rotation_and_custom_colors(self) -> None:
-        """Rotate radial labels and apply custom colors."""
+    def test_svg_radial_leaf_labels_use_rotation_and_custom_colours(self) -> None:
+        """Rotate radial labels and apply custom colours."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "styled.svg"
@@ -240,9 +240,9 @@ class ExportTests(unittest.TestCase):
             options=LayoutOptions(
                 label_mode="leaves",
                 label_orientation="auto",
-                edge_color="#ff0000",
-                node_color="#00ff00",
-                label_color="#0000ff",
+                edge_colour="#ff0000",
+                node_colour="#00ff00",
+                label_colour="#0000ff",
             ),
         )
 
@@ -252,8 +252,8 @@ class ExportTests(unittest.TestCase):
         self.assertIn('fill="#0000ff"', svg_text)
         self.assertIn('transform="rotate(', svg_text)
 
-    def test_svg_palette_mode_colors_top_level_branches_automatically(self) -> None:
-        """Color top-level branches automatically in palette mode."""
+    def test_svg_palette_mode_colours_top_level_branches_automatically(self) -> None:
+        """Colour top-level branches automatically in palette mode."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "palette.svg"
@@ -265,7 +265,7 @@ class ExportTests(unittest.TestCase):
             output_svg=output_svg,
             show_labels=True,
             options=LayoutOptions(
-                color_mode="palette", palette="scientific", label_mode="leaves"
+                colour_mode="palette", palette="scientific", label_mode="leaves"
             ),
         )
 
@@ -275,8 +275,8 @@ class ExportTests(unittest.TestCase):
         self.assertIn('fill="#e69f00"', svg_text)
         self.assertIn('fill="#56b4e9"', svg_text)
 
-    def test_svg_palette_mode_can_color_deeper_branches(self) -> None:
-        """Color a deeper branch level instead of only root children."""
+    def test_svg_palette_mode_can_colour_deeper_branches(self) -> None:
+        """Colour a deeper branch level instead of only root children."""
         generator = DendrogramGenerator()
         directory, input_path = write_deep_branch_tree_csv()
         output_svg = directory / "palette-depth.svg"
@@ -288,7 +288,7 @@ class ExportTests(unittest.TestCase):
             output_svg=output_svg,
             show_labels=True,
             options=LayoutOptions(
-                color_mode="palette",
+                colour_mode="palette",
                 palette="set1",
                 palette_depth=2,
                 label_mode="leaves",
@@ -318,7 +318,7 @@ class ExportTests(unittest.TestCase):
             output_svg=output_svg,
             show_labels=True,
             options=LayoutOptions(
-                color_mode="palette",
+                colour_mode="palette",
                 palette=["#112233", "#445566"],
                 label_mode="leaves",
             ),
@@ -330,8 +330,8 @@ class ExportTests(unittest.TestCase):
         self.assertIn('fill="#112233"', svg_text)
         self.assertIn('fill="#445566"', svg_text)
 
-    def test_svg_rejects_invalid_palette_colors(self) -> None:
-        """Reject invalid custom palette colors before exporting."""
+    def test_svg_rejects_invalid_palette_colours(self) -> None:
+        """Reject invalid custom palette colours before exporting."""
         generator = DendrogramGenerator()
         directory, input_path = write_tree_csv()
         output_svg = directory / "invalid-palette.svg"
@@ -344,8 +344,8 @@ class ExportTests(unittest.TestCase):
                 output_svg=output_svg,
                 show_labels=True,
                 options=LayoutOptions(
-                    color_mode="palette",
-                    palette=["#112233", "not-a-color"],
+                    colour_mode="palette",
+                    palette=["#112233", "not-a-colour"],
                     label_mode="leaves",
                 ),
             )

@@ -19,7 +19,7 @@ def build_parser() -> argparse.ArgumentParser:
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     build_parser = subparsers.add_parser(
-        "build", help="Generate dendrogram artifacts from an input tree."
+        "build", help="Generate dendrogram artefacts from an input tree."
     )
     build_parser.add_argument("input_path", help="Path to the input tree file.")
     build_parser.add_argument("--input-format", choices=["csv", "newick", "json"], default="csv")
@@ -54,21 +54,23 @@ def build_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--label-offset", type=float, default=18.0)
     build_parser.add_argument("--scale", type=float, default=1.0, help="Scale the SVG output size.")
     build_parser.add_argument("--font-size", type=int, default=12)
-    build_parser.add_argument("--color-mode", choices=["global", "palette"], default="global")
+    build_parser.add_argument(
+        "--colour-mode", choices=["global", "palette"], default="global"
+    )
     build_parser.add_argument(
         "--palette",
         default="set1",
-        help="Palette name or comma-separated hex colors, for example set1 or #112233,#445566.",
+        help="Palette name or comma-separated hex colours, for example set1 or #112233,#445566.",
     )
     build_parser.add_argument(
         "--palette-depth",
         type=int,
         default=1,
-        help="Tree depth to color when palette mode is enabled.",
+        help="Tree depth to colour when palette mode is enabled.",
     )
-    build_parser.add_argument("--node-color", default="#0f172a")
-    build_parser.add_argument("--edge-color", default="#334155")
-    build_parser.add_argument("--label-color", default="#111827")
+    build_parser.add_argument("--node-colour", default="#0f172a")
+    build_parser.add_argument("--edge-colour", default="#334155")
+    build_parser.add_argument("--label-colour", default="#111827")
     build_parser.add_argument("--depth-spacing", type=float, default=160.0)
     build_parser.add_argument("--sibling-spacing", type=float, default=90.0)
     build_parser.add_argument("--curve-points", type=int, default=60)
@@ -118,12 +120,12 @@ def main(argv: list[str] | None = None) -> int:
         label_offset=args.label_offset,
         svg_scale=args.scale,
         font_size=args.font_size,
-        color_mode=args.color_mode,
+        colour_mode=args.colour_mode,
         palette=args.palette,
         palette_depth=args.palette_depth,
-        node_color=args.node_color,
-        edge_color=args.edge_color,
-        label_color=args.label_color,
+        node_colour=args.node_colour,
+        edge_colour=args.edge_colour,
+        label_colour=args.label_colour,
     )
 
     try:

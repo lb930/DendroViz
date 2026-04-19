@@ -90,7 +90,7 @@ class TreeLayouter:
         return node.angle
 
     def _leaf_fraction(self, index: int, leaf_count: int, sweep: float) -> float:
-        """Return the normalized position for a leaf within the sweep."""
+        """Return the normalised position for a leaf within the sweep."""
         if leaf_count == 1:
             return 0.0
         if math.isclose(abs(sweep), math.tau):

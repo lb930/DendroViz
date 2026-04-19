@@ -307,7 +307,7 @@ class CliTests(unittest.TestCase):
                 "straight",
                 "--output-svg",
                 str(output_svg),
-                "--color-mode",
+                "--colour-mode",
                 "palette",
                 "--palette",
                 "#112233,#445566",
@@ -342,7 +342,7 @@ class CliTests(unittest.TestCase):
                 "--output-svg",
                 str(output_svg),
                 "--show-labels",
-                "--color-mode",
+                "--colour-mode",
                 "palette",
                 "--palette",
                 "set1",
@@ -390,7 +390,7 @@ class CliTests(unittest.TestCase):
         self.assertIn("--font-size", completed.stderr)
 
     def test_cli_warns_when_palette_settings_are_ignored_in_global_mode(self) -> None:
-        """Warn when palette settings are set but global color mode is used."""
+        """Warn when palette settings are set but global colour mode is used."""
         directory, input_path = write_input_csv()
         output_svg = directory / "palette-global.svg"
 
@@ -407,7 +407,7 @@ class CliTests(unittest.TestCase):
                 "straight",
                 "--output-svg",
                 str(output_svg),
-                "--color-mode",
+                "--colour-mode",
                 "global",
                 "--palette",
                 "set2",
@@ -420,6 +420,6 @@ class CliTests(unittest.TestCase):
         )
 
         self.assertEqual(completed.returncode, 0, completed.stderr)
-        self.assertIn("Palette settings", completed.stderr)
+        self.assertIn("Palette colour settings", completed.stderr)
         self.assertIn("--palette", completed.stderr)
         self.assertIn("--palette-depth", completed.stderr)
