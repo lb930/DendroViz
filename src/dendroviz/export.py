@@ -1,7 +1,6 @@
-from __future__ import annotations
-
 import csv
 import html
+import json
 import math
 from pathlib import Path
 
@@ -133,6 +132,139 @@ class CsvExporter:
             }
             for node in nodes
         ]
+
+    def _branch_aware_color(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        default_color: str,
+        branch_colors: dict[str, str],
+    ) -> str:
+        """Resolve the display color for a node or edge."""
+        branch = result.tree.top_level_branch(node)
+        if branch is None:
+            return default_color
+        return branch_colors.get(branch.node_id, default_color)
+
+    def _group_label(self, node: TreeNode, result: RenderResult) -> str:
+        """Return the top-level branch label for a node."""
+        branch = result.tree.top_level_branch(node)
+        if branch is None:
+            return result.root.label
+        return branch.label
+
+    def _branch_path(self, node: TreeNode, result: RenderResult) -> str:
+        """Return a human-readable path of labels to a node."""
+        return "|".join(ancestor.label for ancestor in result.tree.path_to_node(node))
+
+
+class JsonExporter:
+    def export(
+        self,
+        path: str | Path,
+        result: RenderResult,
+        options: LayoutOptions,
+        show_labels: bool,
+    ) -> Path:
+        """Write a JSON rendering to disk."""
+        output_path = Path(path)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = self._build_payload(result, options, show_labels)
+        output_path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+        return output_path
+
+    def _build_payload(
+        self,
+        result: RenderResult,
+        options: LayoutOptions,
+        show_labels: bool,
+    ) -> dict[str, object]:
+        """Build a JSON-serializable render payload."""
+        branch_colors = branch_colors_for(result, options)
+        return {
+            "tree_layout": result.tree_layout,
+            "line_style": result.line_style,
+            "show_labels": show_labels,
+            "options": self._options_payload(options),
+            "nodes": [
+                self._node_payload(node, result, options, branch_colors)
+                for node in result.nodes
+            ],
+            "edges": [
+                self._edge_payload(edge, result, options, branch_colors)
+                for edge in result.edges
+            ],
+        }
+
+    def _options_payload(self, options: LayoutOptions) -> dict[str, object]:
+        """Serialize layout options to a JSON object."""
+        return {
+            "depth_spacing": options.depth_spacing,
+            "sibling_spacing": options.sibling_spacing,
+            "radial_base_angle_deg": options.radial_base_angle_deg,
+            "radial_sweep_deg": options.radial_sweep_deg,
+            "curve_points": options.curve_points,
+            "straight_points": options.straight_points,
+            "node_radius": options.node_radius,
+            "margin": options.margin,
+            "svg_scale": options.svg_scale,
+            "font_size": options.font_size,
+            "root_fork_fraction": options.root_fork_fraction,
+            "show_internal_nodes": options.show_internal_nodes,
+            "show_root_node": options.show_root_node,
+            "label_mode": options.label_mode,
+            "label_orientation": options.label_orientation,
+            "label_offset": options.label_offset,
+            "color_mode": options.color_mode,
+            "palette": options.palette,
+            "edge_color": options.edge_color,
+            "node_color": options.node_color,
+            "label_color": options.label_color,
+        }
+
+    def _node_payload(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        options: LayoutOptions,
+        branch_colors: dict[str, str],
+    ) -> dict[str, object]:
+        """Serialize a node for JSON output."""
+        return {
+            "node_id": node.node_id,
+            "parent_id": node.parent_id,
+            "label": node.label,
+            "order": node.order,
+            "depth": node.depth,
+            "x": node.x,
+            "y": node.y,
+            "angle": node.angle,
+            "radius": node.radius,
+            "leaf_index": node.leaf_index,
+            "is_leaf": node.is_leaf,
+            "group": self._group_label(node, result),
+            "branch_path": self._branch_path(node, result),
+            "color": self._branch_aware_color(node, result, options.node_color, branch_colors),
+        }
+
+    def _edge_payload(
+        self,
+        edge: EdgePath,
+        result: RenderResult,
+        options: LayoutOptions,
+        branch_colors: dict[str, str],
+    ) -> dict[str, object]:
+        """Serialize an edge for JSON output."""
+        node = result.tree.node_map[edge.target_id]
+        return {
+            "edge_id": edge.edge_id,
+            "source_id": edge.source_id,
+            "target_id": edge.target_id,
+            "group": self._group_label(node, result),
+            "branch_path": self._branch_path(node, result),
+            "color": self._branch_aware_color(node, result, options.edge_color, branch_colors),
+            "points": [{"x": x, "y": y} for x, y in edge.points],
+        }
 
     def _branch_aware_color(
         self,

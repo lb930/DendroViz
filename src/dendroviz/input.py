@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import csv
+import json
+from collections.abc import Mapping
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -17,6 +19,8 @@ class TreeCsvLoader:
             return self._load_csv_rows(path)
         if input_format == "newick":
             return self._load_newick_rows(path)
+        if input_format == "json":
+            return self._load_json_rows(path)
         raise ValidationError(f"Unsupported input format: {input_format}")
 
     def _load_csv_rows(self, path: str | Path) -> list[InputNode]:
@@ -107,6 +111,28 @@ class TreeCsvLoader:
         self._validate_rows(nodes)
         return nodes
 
+    def _load_json_rows(self, path: str | Path) -> list[InputNode]:
+        """Load and normalize rows from a JSON file."""
+        json_path = Path(path)
+        if not json_path.exists():
+            raise ValidationError(f"Input JSON file does not exist: {json_path}")
+
+        try:
+            payload = json.loads(json_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise ValidationError(f"Unable to parse JSON input: {json_path}") from exc
+
+        rows = self._extract_json_rows(payload)
+        if not rows:
+            raise ValidationError("Input JSON contains no data rows.")
+
+        nodes = [
+            self._parse_row(self._normalize_json_row(row, row_number), row_number)
+            for row_number, row in enumerate(rows, start=1)
+        ]
+        self._validate_rows(nodes)
+        return nodes
+
     def load_tree(self, path: str | Path, *, input_format: InputFormat = "csv") -> TreeModel:
         """Load rows and convert them into a tree model."""
         return self.build_tree(self.load_rows(path, input_format=input_format))
@@ -168,6 +194,30 @@ class TreeCsvLoader:
             label=label,
             order=order,
         )
+
+    def _extract_json_rows(self, payload: Any) -> list[Any]:
+        """Extract a JSON row list from the loaded payload."""
+        if isinstance(payload, list):
+            return payload
+        if isinstance(payload, Mapping):
+            rows = payload.get("nodes")
+            if isinstance(rows, list):
+                return rows
+        raise ValidationError("Input JSON must be a list or an object with a 'nodes' list.")
+
+    def _normalize_json_row(self, row: Any, row_number: int) -> dict[str, str | None]:
+        """Convert one JSON record into the CSV-style row shape."""
+        if not isinstance(row, Mapping):
+            raise ValidationError(f"Row {row_number}: JSON row must be an object.")
+
+        normalized: dict[str, str | None] = {}
+        for key in self.REQUIRED_COLUMNS:
+            value = row.get(key)
+            if value is None:
+                normalized[key] = None
+                continue
+            normalized[key] = str(value)
+        return normalized
 
     def _validate_rows(self, nodes: list[InputNode]) -> None:
         """Run all row-level validation checks."""

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .export import CsvExporter, SvgExporter
+from .export import CsvExporter, JsonExporter, SvgExporter
 from .input import TreeCsvLoader
 from .layout import TreeLayouter
 from .models import InputFormat, LayoutOptions, LineStyle, RenderResult, TreeLayout, TreeModel
@@ -15,11 +15,13 @@ class DendrogramGenerator:
         *,
         loader: TreeCsvLoader | None = None,
         csv_exporter: CsvExporter | None = None,
+        json_exporter: JsonExporter | None = None,
         svg_exporter: SvgExporter | None = None,
     ) -> None:
         """Create a generator with optional dependency injection."""
         self.loader = loader or TreeCsvLoader()
         self.csv_exporter = csv_exporter or CsvExporter()
+        self.json_exporter = json_exporter or JsonExporter()
         self.svg_exporter = svg_exporter or SvgExporter()
 
     def load_tree_csv(self, path: str | Path) -> TreeModel:
@@ -38,6 +40,7 @@ class DendrogramGenerator:
         line_style: LineStyle,
         input_format: InputFormat = "csv",
         output_csv: str | Path | None = None,
+        output_json: str | Path | None = None,
         output_svg: str | Path | None = None,
         show_labels: bool = False,
         options: LayoutOptions | None = None,
@@ -58,6 +61,10 @@ class DendrogramGenerator:
 
         if output_csv is not None:
             result.output_csv = self.csv_exporter.export(output_csv, result.csv_rows)
+        if output_json is not None:
+            result.output_json = self.json_exporter.export(
+                output_json, result, resolved_options, show_labels
+            )
         if output_svg is not None:
             result.output_svg = self.svg_exporter.export(
                 output_svg, result, show_labels, resolved_options
@@ -78,3 +85,14 @@ class DendrogramGenerator:
     ) -> Path:
         """Write an SVG rendering for a previously generated tree."""
         return self.svg_exporter.export(path, result, show_labels, options or LayoutOptions())
+
+    def export_json(
+        self,
+        path: str | Path,
+        result: RenderResult,
+        *,
+        show_labels: bool = False,
+        options: LayoutOptions | None = None,
+    ) -> Path:
+        """Write a JSON rendering for a previously generated tree."""
+        return self.json_exporter.export(path, result, options or LayoutOptions(), show_labels)

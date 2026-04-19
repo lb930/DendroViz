@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import re
 import unittest
 from pathlib import Path
@@ -50,6 +51,30 @@ class ExportTests(unittest.TestCase):
         )
         self.assertIn("Røot", svg_text)
         self.assertIn("<circle", svg_text)
+
+    def test_writes_json(self) -> None:
+        """Write a JSON render result with nodes and edges."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_json = directory / "render.json"
+
+        result = generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_json=output_json,
+            show_labels=True,
+        )
+
+        self.assertEqual(result.output_json, output_json)
+        payload = json.loads(output_json.read_text(encoding="utf-8"))
+        self.assertEqual(payload["tree_layout"], "radial")
+        self.assertEqual(payload["line_style"], "split")
+        self.assertTrue(payload["show_labels"])
+        self.assertEqual(len(payload["nodes"]), 3)
+        self.assertEqual(len(payload["edges"]), 2)
+        self.assertEqual(payload["nodes"][0]["node_id"], "root")
+        self.assertIn("points", payload["edges"][0])
 
     def test_csv_uses_layered_viz_schema(self) -> None:
         """Emit CSV rows that match the layered-viz schema."""

@@ -6,7 +6,7 @@ from typing import Iterator, Literal
 
 TreeLayout = Literal["radial", "vertical", "horizontal"]
 LineStyle = Literal["curved", "split", "straight"]
-InputFormat = Literal["csv", "newick"]
+InputFormat = Literal["csv", "newick", "json"]
 LabelMode = Literal["all", "leaves", "none"]
 LabelOrientation = Literal["horizontal", "auto"]
 ColorMode = Literal["global", "palette"]
@@ -148,6 +148,7 @@ class RenderResult:
     line_style: LineStyle
     output_csv: Path | None = None
     output_svg: Path | None = None
+    output_json: Path | None = None
 
     @property
     def root(self) -> TreeNode:

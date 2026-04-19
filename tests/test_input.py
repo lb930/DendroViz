@@ -7,7 +7,7 @@ from unittest import mock
 
 from dendroviz.api import DendrogramGenerator
 from dendroviz.errors import ValidationError
-from tests.helpers import write_csv_dict_file, write_text_file
+from tests.helpers import write_csv_dict_file, write_json_file, write_text_file
 
 
 class FakeClade:
@@ -137,6 +137,22 @@ class LoadTreeCsvTests(unittest.TestCase):
         self.assertEqual(tree.root.label, "Root")
         self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
         fake_phylo.read.assert_called_once_with(str(path), "newick")
+
+    def test_loads_json_tree(self) -> None:
+        """Load a JSON tree in the same row schema as CSV."""
+        generator = DendrogramGenerator()
+        _, path = write_json_file(
+            [
+                {"id": "root", "parent": None, "label": "Root", "order": 0},
+                {"id": "child_b", "parent": "root", "label": "Child B", "order": 1},
+                {"id": "child_a", "parent": "root", "label": "Child A", "order": 0},
+            ]
+        )
+
+        tree = generator.load_tree(path, input_format="json")
+
+        self.assertEqual(tree.root.node_id, "root")
+        self.assertEqual([node.node_id for node in tree.nodes], ["root", "child_a", "child_b"])
 
     def test_newick_requires_biopython_when_requested(self) -> None:
         """Raise ImportError when Newick support is requested without BioPython."""

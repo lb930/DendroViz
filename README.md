@@ -8,17 +8,22 @@ The package, CLI, and Python import path are all `dendroviz`.
 
 ## Examples
 
-Small radial tree:
-
-![Small radial SVG](build/dummy-small.svg)
-
-Small horizontal split tree:
-
-![Small horizontal split SVG](build/dummy-small-horizontal-split.svg)
-
-Deeper radial tree with palette coloring:
-
-![Deep radial SVG](build/dummy-deep.svg)
+<table>
+  <tr>
+    <td align="center">
+      <strong>Vertical tree with straight lines</strong><br>
+      <img src="build/dummy-small-vertical-straight.svg" alt="Vertical straight SVG" width="250">
+    </td>
+    <td align="center">
+      <strong>Horizontal tree with curved lines</strong><br>
+      <img src="build/dummy-small-horizontal-curved.svg" alt="Horizontal curved SVG" width="250">
+    </td>
+    <td align="center">
+      <strong>Radial tree with split lines</strong><br>
+      <img src="build/dummy-deep-radial-split.svg" alt="Radial split SVG" width="250">
+    </td>
+  </tr>
+</table>
 
 ## Features
 
@@ -27,6 +32,7 @@ Deeper radial tree with palette coloring:
 - Any layout can be combined with any line style
 - Arbitrary tree depth
 - Render-ready CSV export
+- Rendered JSON export for downstream tools and inspection
 - SVG export with labels on or off
 - SVG controls for leaf-only labels, root/internal node visibility, and colors
 - Deterministic sibling ordering from CSV
@@ -97,8 +103,8 @@ result = generator.generate_tree(
     "examples/dummy_deep.csv",
     tree_layout="radial",
     line_style="split",
-    output_csv="build/dummy-deep.csv",
-    output_svg="build/dummy-deep.svg",
+    output_csv="build/dummy-deep-radial-split.csv",
+    output_svg="build/dummy-deep-radial-split.svg",
     show_labels=True,
     options=LayoutOptions(
         label_mode="leaves",
@@ -113,6 +119,26 @@ result = generator.generate_tree(
 
 print(len(result.nodes), len(result.edges))
 ```
+
+To export the rendered tree as JSON instead of, or in addition to, CSV and SVG:
+
+```python
+result = generator.generate_tree(
+    "examples/dummy_deep.csv",
+    tree_layout="radial",
+    line_style="split",
+    output_json="build/dummy-deep.json",
+    show_labels=True,
+)
+```
+
+The JSON output is a rendered tree payload, not a raw input echo. It includes:
+
+- `tree_layout` and `line_style`
+- `show_labels`
+- the resolved `options`
+- `nodes` with positions, depth, branch metadata, and colors
+- `edges` with routed points and colors
 
 To render a Newick file instead:
 
@@ -138,8 +164,9 @@ dendroviz build examples/dummy_deep.csv \
   --input-format csv \
   --tree-layout radial \
   --line-style split \
-  --output-csv build/dummy-deep.csv \
-  --output-svg build/dummy-deep.svg \
+  --output-csv build/dummy-deep-radial-split.csv \
+  --output-json build/dummy-deep.json \
+  --output-svg build/dummy-deep-radial-split.svg \
   --show-labels \
   --label-mode leaves \
   --hide-internal-nodes \
@@ -153,17 +180,17 @@ Example test runs:
 
 ```bash
 PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
-  --tree-layout radial \
-  --line-style curved \
-  --output-csv build/dummy-small.csv \
-  --output-svg build/dummy-small.svg \
+  --tree-layout vertical \
+  --line-style straight \
+  --output-csv build/dummy-small-vertical-straight.csv \
+  --output-svg build/dummy-small-vertical-straight.svg \
   --show-labels
 
-PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_medium.csv \
-  --tree-layout vertical \
-  --line-style split \
-  --output-csv build/dummy-medium.csv \
-  --output-svg build/dummy-medium.svg \
+PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_small.csv \
+  --tree-layout horizontal \
+  --line-style curved \
+  --output-csv build/dummy-small-horizontal-curved.csv \
+  --output-svg build/dummy-small-horizontal-curved.svg \
   --show-labels \
   --edge-color '#1d4ed8' \
   --node-color '#111827' \
@@ -172,8 +199,8 @@ PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_medium.csv \
 PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --tree-layout radial \
   --line-style split \
-  --output-csv build/dummy-deep.csv \
-  --output-svg build/dummy-deep.svg \
+  --output-csv build/dummy-deep-radial-split.csv \
+  --output-svg build/dummy-deep-radial-split.svg \
   --show-labels \
   --label-mode leaves \
   --hide-internal-nodes \
@@ -190,7 +217,7 @@ For a cleaner radial tree where only leaf nodes are drawn and only leaves get la
 PYTHONPATH=src python3 -m dendroviz.cli build examples/dummy_deep.csv \
   --tree-layout radial \
   --line-style split \
-  --output-svg build/dummy-deep.svg \
+  --output-svg build/dummy-deep-radial-split.svg \
   --show-labels \
   --label-mode leaves \
   --hide-internal-nodes \
@@ -269,6 +296,46 @@ The render-ready CSV is a layered visualization table that works better with too
 - `depth`: node depth or empty for links
 - `tree_layout`: selected tree layout
 - `line_style`: selected edge routing style
+
+## Output JSON schema
+
+The JSON export is intended for downstream tools that want the rendered tree as structured data rather than SVG markup.
+
+Top-level fields:
+
+- `tree_layout`: selected tree layout
+- `line_style`: selected edge routing style
+- `show_labels`: whether label rendering was requested
+- `options`: the resolved layout and styling options
+- `nodes`: rendered node records
+- `edges`: routed edge records
+
+Each node record includes:
+
+- `node_id`
+- `parent_id`
+- `label`
+- `order`
+- `depth`
+- `x`, `y`
+- `angle`, `radius`
+- `leaf_index`
+- `is_leaf`
+- `group`
+- `branch_path`
+- `color`
+
+Each edge record includes:
+
+- `edge_id`
+- `source_id`
+- `target_id`
+- `group`
+- `branch_path`
+- `color`
+- `points`
+
+`points` is an array of `{x, y}` coordinates describing the routed path.
 
 ## How layout and line style interact
 
