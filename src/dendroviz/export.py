@@ -570,6 +570,9 @@ class SvgExporter:
                 options.margin,
                 scale,
                 self._edge_colour(edge, result, options, branch_colours),
+                result,
+                options,
+                branch_colours,
             )
             for edge in result.edges
         )
@@ -640,13 +643,22 @@ class SvgExporter:
         margin: float,
         scale: float,
         stroke_colour: str,
+        result: RenderResult,
+        options: LayoutOptions,
+        branch_colours: dict[str, str],
     ) -> str:
         """Render one SVG path element."""
+        metadata = self._svg_element_metadata_for_edge(edge, result, options, branch_colours)
+        title = self._svg_element_title_for_edge(edge, result, options)
         transformed = [
             f"{((x - min_x + margin) * scale):.3f},{((y - min_y + margin) * scale):.3f}"
             for x, y in edge.points
         ]
-        return f'<path class="edge" stroke="{stroke_colour}" d="M {" L ".join(transformed)}" />'
+        return (
+            f'<path class="edge" stroke="{stroke_colour}" {metadata} '
+            f'd="M {" L ".join(transformed)}">'
+            f"{title}</path>"
+        )
 
     def _svg_node(
         self,
@@ -665,9 +677,18 @@ class SvgExporter:
         parts: list[str] = []
         if self._should_render_node(node, options):
             node_colour = self._node_colour(node, result, options, branch_colours)
+            metadata = self._svg_element_metadata_for_node(
+                node,
+                result,
+                options,
+                branch_colours,
+                node_colour,
+            )
+            title = self._svg_element_title_for_node(node, result, options)
             parts.append(
-                f'<circle class="node" fill="{node_colour}" '
-                f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}" />'
+                f'<circle class="node" fill="{node_colour}" {metadata} '
+                f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}">'
+                f"{title}</circle>"
             )
         if show_labels and self._should_render_label(node, options):
             parts.append(
@@ -724,6 +745,14 @@ class SvgExporter:
     ) -> str:
         """Render a non-radial SVG label."""
         label_colour = self._label_colour(node, result, options, branch_colours)
+        metadata = self._svg_element_metadata_for_node(
+            node,
+            result,
+            options,
+            branch_colours,
+            label_colour,
+        )
+        title = self._svg_element_title_for_node(node, result, options)
         if (
             node.angle is not None
             and node.radius is not None
@@ -736,6 +765,8 @@ class SvgExporter:
                 options,
                 scale,
                 label_colour,
+                metadata,
+                title,
             )
         if tree_layout == "horizontal":
             if node.is_leaf or options.label_mode == "leaves":
@@ -751,10 +782,10 @@ class SvgExporter:
             label_y = y
             anchor = "start"
         return (
-            f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
+            f'<text class="label" {metadata} x="{label_x:.3f}" y="{label_y:.3f}" '
             f'font-size="{options.font_size * scale:.3f}" fill="{label_colour}" '
             f'text-anchor="{anchor}" dominant-baseline="middle">'
-            f"{html.escape(node.label)}</text>"
+            f"{title}{html.escape(node.label)}</text>"
         )
 
     def _svg_radial_label(
@@ -765,6 +796,8 @@ class SvgExporter:
         options: LayoutOptions,
         scale: float,
         label_colour: str,
+        metadata: str,
+        title: str,
     ) -> str:
         """Render a radial SVG label."""
         assert node.angle is not None
@@ -777,11 +810,11 @@ class SvgExporter:
             rotation += 180.0
             anchor = "end"
         return (
-            f'<text class="label" x="{label_x:.3f}" y="{label_y:.3f}" '
+            f'<text class="label" {metadata} x="{label_x:.3f}" y="{label_y:.3f}" '
             f'font-size="{options.font_size * scale:.3f}" fill="{label_colour}" '
             f'text-anchor="{anchor}" dominant-baseline="middle" '
             f'transform="rotate({rotation:.3f} {label_x:.3f} {label_y:.3f})">'
-            f"{html.escape(node.label)}</text>"
+            f"{title}{html.escape(node.label)}</text>"
         )
 
     def _edge_colour(
@@ -846,6 +879,84 @@ class SvgExporter:
         if branch is None:
             return fallback_colour
         return branch_colours.get(branch.node_id, fallback_colour)
+
+    def _svg_element_metadata_for_node(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        options: LayoutOptions,
+        branch_colours: dict[str, str],
+        colour: str,
+    ) -> str:
+        """Return optional SVG data attributes for a node-related element."""
+        if not options.show_svg_data_attributes:
+            return ""
+        branch = resolve_branch_root(node, result, options.palette_depth)
+        branch_id = branch.node_id if branch is not None else ""
+        branch_path = "|".join(ancestor.node_id for ancestor in result.tree.path_to_node(node))
+        return (
+            f'data-node-id="{html.escape(node.node_id, quote=True)}" '
+            f'data-parent-id="{html.escape(node.parent_id or "", quote=True)}" '
+            f'data-label="{html.escape(node.label, quote=True)}" '
+            f'data-depth="{node.depth}" '
+            f'data-branch-id="{html.escape(branch_id, quote=True)}" '
+            f'data-branch-path="{html.escape(branch_path, quote=True)}" '
+            f'data-colour="{html.escape(colour, quote=True)}"'
+        )
+
+    def _svg_element_metadata_for_edge(
+        self,
+        edge: EdgePath,
+        result: RenderResult,
+        options: LayoutOptions,
+        branch_colours: dict[str, str],
+    ) -> str:
+        """Return optional SVG data attributes for an edge-related element."""
+        if not options.show_svg_data_attributes:
+            return ""
+        target = result.tree.node_map[edge.target_id]
+        branch = resolve_branch_root(target, result, options.palette_depth)
+        branch_id = branch.node_id if branch is not None else ""
+        branch_path = "|".join(ancestor.node_id for ancestor in result.tree.path_to_node(target))
+        colour = self._branch_aware_colour(
+            target,
+            result,
+            PALETTE_FALLBACK_COLOUR if options.colour_mode == "palette" else options.edge_colour,
+            branch_colours,
+            options.palette_depth,
+        )
+        return (
+            f'data-edge-id="{html.escape(edge.edge_id, quote=True)}" '
+            f'data-source-id="{html.escape(edge.source_id, quote=True)}" '
+            f'data-target-id="{html.escape(edge.target_id, quote=True)}" '
+            f'data-branch-id="{html.escape(branch_id, quote=True)}" '
+            f'data-branch-path="{html.escape(branch_path, quote=True)}" '
+            f'data-colour="{html.escape(colour, quote=True)}"'
+        )
+
+    def _svg_element_title_for_node(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        options: LayoutOptions,
+    ) -> str:
+        """Return an optional short SVG title for a node-related element."""
+        if not options.show_svg_titles:
+            return ""
+        return f"<title>{html.escape(node.label)}</title>"
+
+    def _svg_element_title_for_edge(
+        self,
+        edge: EdgePath,
+        result: RenderResult,
+        options: LayoutOptions,
+    ) -> str:
+        """Return an optional short SVG title for an edge-related element."""
+        if not options.show_svg_titles:
+            return ""
+        source = result.tree.node_map[edge.source_id]
+        target = result.tree.node_map[edge.target_id]
+        return f"<title>{html.escape(source.label)} → {html.escape(target.label)}</title>"
 
     def _palette_legend_entries(
         self,

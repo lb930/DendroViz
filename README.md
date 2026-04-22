@@ -242,6 +242,8 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | `--palette` | preset name or hex colours | Used only when `--colour-mode palette` is active |
 | `--palette-depth` | `1`, `2`, ... | Used only when `--colour-mode palette` is active; chooses which tree level gets palette colouring |
 | `--show-palette-legend` | flag | Adds a small SVG legend when palette colouring is active |
+| `--show-svg-data-attributes` | flag | Adds `data-*` metadata to SVG nodes and edges for browser scripting |
+| `--show-svg-titles` | flag | Adds short hover titles to SVG nodes and edges |
 | `--node-colour` | hex colour | Fallback node colour in global mode |
 | `--edge-colour` | hex colour | Fallback edge colour in global mode |
 | `--label-colour` | hex colour | Fallback label colour in global mode |
