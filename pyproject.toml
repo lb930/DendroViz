@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "dendroviz"
 version = "0.1.2"
 description = "Generate dendrogram scaffolding CSV and SVG from rooted tree data."
-readme = "README.md"
+readme = "README.pypi.md"
 license = "MIT"
 requires-python = ">=3.10"
 keywords = ["dendrogram", "tree", "svg", "csv", "visualization"]

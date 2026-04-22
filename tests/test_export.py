@@ -179,7 +179,7 @@ class ExportTests(unittest.TestCase):
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
-        self.assertIn(">Røot</text>", svg_text)
+        self.assertNotIn(">Røot</text>", svg_text)
         self.assertIn('text-anchor="start"', svg_text)
         self.assertNotIn('text-anchor="middle"', svg_text)
 
@@ -199,7 +199,7 @@ class ExportTests(unittest.TestCase):
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
-        self.assertIn(">Røot</text>", svg_text)
+        self.assertNotIn(">Røot</text>", svg_text)
         self.assertIn(">Ä</text>", svg_text)
         self.assertEqual(svg_text.count("<circle"), 3)
 
@@ -224,6 +224,29 @@ class ExportTests(unittest.TestCase):
 
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertEqual(svg_text.count("<circle"), 2)
+
+    def test_svg_can_show_root_node_without_label_in_leaf_mode(self) -> None:
+        """Render the root marker while suppressing its label in leaf mode."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "root-node-only.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(
+                show_root_node=True,
+                show_internal_nodes=True,
+                label_mode="leaves",
+            ),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertEqual(svg_text.count("<circle"), 3)
+        self.assertNotIn(">Røot</text>", svg_text)
 
     def test_svg_radial_leaf_labels_use_rotation_and_custom_colours(self) -> None:
         """Rotate radial labels and apply custom colours."""

@@ -725,7 +725,7 @@ class SvgExporter:
     def _should_render_label(self, node: TreeNode, options: LayoutOptions) -> bool:
         """Return whether the node label should be rendered."""
         if node.parent_id is None:
-            return options.show_root_node and options.label_mode != "none"
+            return options.show_root_node and options.label_mode == "all"
         if options.label_mode == "none":
             return False
         if options.label_mode == "leaves":
