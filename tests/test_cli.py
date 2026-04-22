@@ -393,6 +393,68 @@ class CliTests(unittest.TestCase):
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn('id="palette-legend"', svg_text)
 
+    def test_cli_accepts_svg_data_attributes_flag(self) -> None:
+        """Accept the SVG data attributes flag on the command line."""
+        directory, input_path = write_input_csv()
+        output_svg = directory / "svg-data-attributes.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+                "--show-labels",
+                "--show-svg-data-attributes",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('data-node-id="root"', svg_text)
+        self.assertIn('data-edge-id="root-&gt;child"', svg_text)
+
+    def test_cli_accepts_svg_titles_flag(self) -> None:
+        """Accept the SVG titles flag on the command line."""
+        directory, input_path = write_input_csv()
+        output_svg = directory / "svg-titles.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "vertical",
+                "--line-style",
+                "straight",
+                "--output-svg",
+                str(output_svg),
+                "--show-labels",
+                "--show-svg-titles",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn("<title>Root</title>", svg_text)
+        self.assertIn("<title>Root → Child</title>", svg_text)
+
     def test_cli_warns_when_label_settings_are_ignored(self) -> None:
         """Warn when label-specific options are set but labels are disabled."""
         directory, input_path = write_input_csv()

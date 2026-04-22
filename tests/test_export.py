@@ -290,6 +290,7 @@ class ExportTests(unittest.TestCase):
                 palette="scientific",
                 label_mode="leaves",
                 show_palette_legend=True,
+                show_svg_data_attributes=True,
             ),
         )
 
@@ -298,6 +299,28 @@ class ExportTests(unittest.TestCase):
         self.assertIn("Palette legend", svg_text)
         self.assertIn('class="legend-swatch"', svg_text)
         self.assertIn('class="legend-label"', svg_text)
+        self.assertIn('data-node-id="root"', svg_text)
+        self.assertIn('data-edge-id="root-&gt;a"', svg_text)
+        self.assertIn('data-branch-path="root|a"', svg_text)
+
+    def test_svg_can_render_short_titles(self) -> None:
+        """Render short hover titles for SVG nodes and edges."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "titles.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="vertical",
+            line_style="straight",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(show_svg_titles=True),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertGreaterEqual(svg_text.count("<title>Røot</title>"), 2)
+        self.assertIn("<title>Røot → Ä</title>", svg_text)
 
     def test_svg_palette_mode_can_colour_deeper_branches(self) -> None:
         """Colour a deeper branch level instead of only root children."""
