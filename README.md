@@ -9,6 +9,7 @@
 - [Quickstart](#quickstart)
 - [Input Format](#input-format)
 - [Colour Palettes](#colour-palettes)
+- [Release Process](#release-process)
 - [CLI Reference](#cli-reference)
 - [Development](#development)
 
@@ -431,3 +432,19 @@ Custom palettes are also supported:
 ## Development
 
 For now, use `pip install -e .[dev]` for local setup and run `python -m unittest discover -s tests -v` to execute the test suite.
+
+## Release Process
+
+This project follows Semantic Versioning:
+
+- `MAJOR` for breaking API or CLI changes
+- `MINOR` for new backward-compatible features
+- `PATCH` for bug fixes and release-only polish
+
+Before creating a release tag:
+
+1. Update the version in `pyproject.toml`.
+2. Add a short note to `CHANGELOG.md`.
+3. Run the test suite, Ruff, and a build check.
+4. Create and push a tag like `v0.1.0`.
+5. Let GitHub Actions publish the tagged build to PyPI.

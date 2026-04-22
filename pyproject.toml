@@ -7,13 +7,12 @@ name = "dendroviz"
 version = "0.1.0"
 description = "Generate dendrogram scaffolding CSV and SVG from rooted tree data."
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
 requires-python = ">=3.10"
 keywords = ["dendrogram", "tree", "svg", "csv", "visualization"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -21,7 +20,13 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering :: Visualization",
 ]
+license-files = ["LICENSE"]
 dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/lb930/DendroViz"
+Repository = "https://github.com/lb930/DendroViz"
+Issues = "https://github.com/lb930/DendroViz/issues"
 
 [project.optional-dependencies]
 newick = [
