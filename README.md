@@ -9,15 +9,15 @@
   <tr>
     <td align="center">
       <strong>Vertical tree with straight lines</strong><br>
-      <img src="build/dummy-small-vertical-straight.svg" alt="Vertical straight preview" width="250">
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/build/dummy-small-vertical-straight.svg" alt="Vertical straight preview" width="250">
     </td>
     <td align="center">
       <strong>Horizontal tree with curved lines</strong><br>
-      <img src="build/dummy-small-horizontal-curved.svg" alt="Horizontal curved preview" width="250">
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/build/dummy-small-horizontal-curved.svg" alt="Horizontal curved preview" width="250">
     </td>
     <td align="center">
       <strong>Radial tree with split lines</strong><br>
-      <img src="build/dummy-deep-radial-split.svg" alt="Radial split preview" width="250">
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/build/dummy-deep-radial-split.svg" alt="Radial split preview" width="250">
     </td>
   </tr>
 </table>
