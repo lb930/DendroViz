@@ -9,15 +9,15 @@
   <tr>
     <td align="center">
       <strong>Vertical tree with straight lines</strong><br>
-      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/dummy-small-vertical-straight.png" alt="Vertical straight preview" width="250">
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/fix/pypi-images/assets/dummy-small-vertical-straight.png" alt="Vertical straight preview" width="250">
     </td>
     <td align="center">
       <strong>Horizontal tree with curved lines</strong><br>
-      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/dummy-small-horizontal-curved.png" alt="Horizontal curved preview" width="250">
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/fix/pypi-images/assets/dummy-small-horizontal-curved.png" alt="Horizontal curved preview" width="250">
     </td>
     <td align="center">
       <strong>Radial tree with split lines</strong><br>
-      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/dummy-deep-radial-split.png" alt="Radial split preview" width="250">
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/fix/pypi-images/assets/dummy-deep-radial-split.png" alt="Radial split preview" width="250">
     </td>
   </tr>
 </table>

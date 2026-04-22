@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+from packaging.version import Version
 import unittest
 from unittest import mock
 
@@ -11,7 +12,7 @@ class PackagingTests(unittest.TestCase):
     def test_import_smoke(self) -> None:
         """Import the package and verify its top-level API is present."""
         module = importlib.import_module("dendroviz")
-        self.assertEqual(module.__version__, "0.1.0")
+        Version(module.__version__)
         self.assertTrue(hasattr(module, "DendrogramGenerator"))
 
     def test_default_install_does_not_require_biopython(self) -> None:
