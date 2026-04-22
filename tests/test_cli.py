@@ -359,6 +359,40 @@ class CliTests(unittest.TestCase):
         self.assertIn('stroke="#e41a1c"', svg_text)
         self.assertIn('stroke="#377eb8"', svg_text)
 
+    def test_cli_accepts_palette_legend_flag(self) -> None:
+        """Accept the palette legend flag on the command line."""
+        directory, input_path = write_input_csv()
+        output_svg = directory / "palette-legend.svg"
+
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "dendroviz.cli",
+                "build",
+                str(input_path),
+                "--tree-layout",
+                "radial",
+                "--line-style",
+                "split",
+                "--output-svg",
+                str(output_svg),
+                "--show-labels",
+                "--colour-mode",
+                "palette",
+                "--palette",
+                "scientific",
+                "--show-palette-legend",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('id="palette-legend"', svg_text)
+
     def test_cli_warns_when_label_settings_are_ignored(self) -> None:
         """Warn when label-specific options are set but labels are disabled."""
         directory, input_path = write_input_csv()

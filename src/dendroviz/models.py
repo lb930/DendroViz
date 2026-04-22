@@ -147,6 +147,7 @@ class LayoutOptions:
     colour_mode: ColourMode = "global"
     palette: PaletteSpec = "set1"
     palette_depth: int = 1
+    show_palette_legend: bool = False
     edge_colour: str = "#334155"
     node_colour: str = "#0f172a"
     label_colour: str = "#111827"

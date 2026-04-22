@@ -94,7 +94,8 @@ dendroviz build examples/dummy_deep.csv \
   --label-offset 24 \
   --colour-mode palette \
   --palette set2 \
-  --palette-depth 2
+  --palette-depth 2 \
+  --show-palette-legend
 ```
 
 Example test runs:
@@ -240,6 +241,7 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | `--colour-mode` | `global`, `palette` | Controls whether palette colouring is used |
 | `--palette` | preset name or hex colours | Used only when `--colour-mode palette` is active |
 | `--palette-depth` | `1`, `2`, ... | Used only when `--colour-mode palette` is active; chooses which tree level gets palette colouring |
+| `--show-palette-legend` | flag | Adds a small SVG legend when palette colouring is active |
 | `--node-colour` | hex colour | Fallback node colour in global mode |
 | `--edge-colour` | hex colour | Fallback edge colour in global mode |
 | `--label-colour` | hex colour | Fallback label colour in global mode |

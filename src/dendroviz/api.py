@@ -121,6 +121,10 @@ class DendrogramGenerator:
                     "Palette colour settings %s are ignored unless --colour-mode palette is set.",
                     ", ".join(palette_overrides),
                 )
+            if options.show_palette_legend:
+                logger.warning(
+                    "--show-palette-legend is ignored unless --colour-mode palette is set."
+                )
         else:
             colour_overrides: list[str] = []
             if options.node_colour != defaults.node_colour:

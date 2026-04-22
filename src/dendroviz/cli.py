@@ -54,9 +54,7 @@ def build_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--label-offset", type=float, default=18.0)
     build_parser.add_argument("--scale", type=float, default=1.0, help="Scale the SVG output size.")
     build_parser.add_argument("--font-size", type=int, default=12)
-    build_parser.add_argument(
-        "--colour-mode", choices=["global", "palette"], default="global"
-    )
+    build_parser.add_argument("--colour-mode", choices=["global", "palette"], default="global")
     build_parser.add_argument(
         "--palette",
         default="set1",
@@ -67,6 +65,11 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=1,
         help="Tree depth to colour when palette mode is enabled.",
+    )
+    build_parser.add_argument(
+        "--show-palette-legend",
+        action="store_true",
+        help="Render a small legend in SVG output when palette mode is active.",
     )
     build_parser.add_argument("--node-colour", default="#0f172a")
     build_parser.add_argument("--edge-colour", default="#334155")
@@ -123,6 +126,7 @@ def main(argv: list[str] | None = None) -> int:
         colour_mode=args.colour_mode,
         palette=args.palette,
         palette_depth=args.palette_depth,
+        show_palette_legend=args.show_palette_legend,
         node_colour=args.node_colour,
         edge_colour=args.edge_colour,
         label_colour=args.label_colour,

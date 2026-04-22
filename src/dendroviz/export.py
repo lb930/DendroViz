@@ -159,7 +159,9 @@ def resolve_palette_colours(palette_spec: object) -> list[str]:
             "Palette must be a named palette or a sequence of hex colour strings."
         )
 
-    resolved = [_normalise_hex_colour(colour, index) for index, colour in enumerate(palette, start=1)]
+    resolved = [
+        _normalise_hex_colour(colour, index) for index, colour in enumerate(palette, start=1)
+    ]
     if not resolved:
         raise ValidationError("Palette must contain at least one colour.")
     return resolved
@@ -267,7 +269,9 @@ class CsvExporter:
             colour = self._branch_aware_colour(
                 target,
                 result,
-                PALETTE_FALLBACK_COLOUR if options.colour_mode == "palette" else options.edge_colour,
+                PALETTE_FALLBACK_COLOUR
+                if options.colour_mode == "palette"
+                else options.edge_colour,
                 branch_colours,
                 options.palette_depth,
             )
@@ -400,12 +404,10 @@ class JsonExporter:
             "show_labels": show_labels,
             "options": self._options_payload(options),
             "nodes": [
-                self._node_payload(node, result, options, branch_colours)
-                for node in result.nodes
+                self._node_payload(node, result, options, branch_colours) for node in result.nodes
             ],
             "edges": [
-                self._edge_payload(edge, result, options, branch_colours)
-                for edge in result.edges
+                self._edge_payload(edge, result, options, branch_colours) for edge in result.edges
             ],
         }
 
@@ -461,7 +463,9 @@ class JsonExporter:
             "colour": self._branch_aware_colour(
                 node,
                 result,
-                PALETTE_FALLBACK_COLOUR if options.colour_mode == "palette" else options.node_colour,
+                PALETTE_FALLBACK_COLOUR
+                if options.colour_mode == "palette"
+                else options.node_colour,
                 branch_colours,
                 options.palette_depth,
             ),
@@ -485,7 +489,9 @@ class JsonExporter:
             "colour": self._branch_aware_colour(
                 node,
                 result,
-                PALETTE_FALLBACK_COLOUR if options.colour_mode == "palette" else options.edge_colour,
+                PALETTE_FALLBACK_COLOUR
+                if options.colour_mode == "palette"
+                else options.edge_colour,
                 branch_colours,
                 options.palette_depth,
             ),
@@ -536,6 +542,7 @@ class SvgExporter:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         branch_colours = branch_colours_for(result, options)
         scale = max(options.svg_scale, 0.01)
+        legend_entries = self._palette_legend_entries(result, options, branch_colours)
         logger.info(
             "Writing SVG export to %s (%d nodes, %d edges)",
             output_path,
@@ -544,6 +551,16 @@ class SvgExporter:
         )
 
         min_x, min_y, width, height = self._compute_bounds(result.nodes, options, show_labels)
+        legend_svg = ""
+        if legend_entries:
+            legend_svg, legend_width, legend_height = self._svg_palette_legend(
+                legend_entries,
+                width,
+                height,
+                scale,
+            )
+            width = max(width, legend_width)
+            height = max(height, legend_height)
         view_box = f"0 0 {width:.3f} {height:.3f}"
         path_elements = "\n".join(
             self._svg_path(
@@ -578,9 +595,12 @@ class SvgExporter:
             f".edge {{ fill: none; stroke-width: {2 * scale:.3f}; stroke-linecap: round; }}\n"
             ".node { }\n"
             ".label { font-family: Helvetica, Arial, sans-serif; }\n"
+            ".legend { font-family: Helvetica, Arial, sans-serif; }\n"
+            ".legend-title { font-weight: 700; }\n"
             "</style>\n"
             f"{path_elements}\n"
             f"{node_elements}\n"
+            f"{legend_svg}\n"
             "</svg>\n"
         )
 
@@ -826,3 +846,85 @@ class SvgExporter:
         if branch is None:
             return fallback_colour
         return branch_colours.get(branch.node_id, fallback_colour)
+
+    def _palette_legend_entries(
+        self,
+        result: RenderResult,
+        options: LayoutOptions,
+        branch_colours: dict[str, str],
+    ) -> list[tuple[str, str]]:
+        """Build legend entries for palette-driven output."""
+        if options.colour_mode != "palette" or not options.show_palette_legend:
+            return []
+        branch_depth = resolve_palette_depth(options.palette_depth)
+        entries: list[tuple[str, str]] = []
+        for node in result.tree.nodes:
+            if node.depth != branch_depth:
+                continue
+            entries.append((node.label, branch_colours.get(node.node_id, PALETTE_FALLBACK_COLOUR)))
+        return entries
+
+    def _svg_palette_legend(
+        self,
+        entries: list[tuple[str, str]],
+        tree_width: float,
+        tree_height: float,
+        scale: float,
+    ) -> tuple[str, float, float]:
+        """Render a compact palette legend beside the tree."""
+        if not entries:
+            return "", tree_width, 0.0
+
+        legend_x = tree_width + (24.0 * scale)
+        legend_y = 24.0 * scale
+        padding_x = 14.0 * scale
+        padding_y = 12.0 * scale
+        swatch_size = 10.0 * scale
+        row_height = 18.0 * scale
+        row_gap = 8.0 * scale
+        title_font_size = 12.0 * scale
+        entry_font_size = 11.0 * scale
+        label_gap = 8.0 * scale
+        title_height = 16.0 * scale
+        max_label_chars = max(len(label) for label, _ in entries)
+        content_width = max(132.0 * scale, (max_label_chars * 6.4 + 48.0) * scale)
+        legend_height = (padding_y * 2) + title_height + row_gap + (len(entries) * row_height)
+
+        legend = [
+            f'<g id="palette-legend" class="legend" aria-label="Palette legend" '
+            f'transform="translate({legend_x:.3f} {legend_y:.3f})">',
+            (
+                f'<rect x="0" y="0" width="{content_width:.3f}" '
+                f'height="{legend_height:.3f}" rx="{8.0 * scale:.3f}" '
+                f'fill="#ffffff" fill-opacity="0.86" stroke="#cbd5e1" />'
+            ),
+            (
+                f'<text class="legend-title" x="{padding_x:.3f}" y="{padding_y:.3f}" '
+                f'font-size="{title_font_size:.3f}" fill="#0f172a" '
+                f'dominant-baseline="hanging">Palette legend</text>'
+            ),
+        ]
+
+        start_y = padding_y + title_height + row_gap + (row_height / 2.0)
+        for index, (label, colour) in enumerate(entries):
+            row_y = start_y + (index * row_height)
+            legend.append(
+                (
+                    f'<rect class="legend-swatch" x="{padding_x:.3f}" '
+                    f'y="{(row_y - (swatch_size / 2.0)):.3f}" '
+                    f'width="{swatch_size:.3f}" height="{swatch_size:.3f}" '
+                    f'rx="{2.0 * scale:.3f}" fill="{colour}" />'
+                )
+            )
+            legend.append(
+                (
+                    f'<text class="legend-label" x="{(padding_x + swatch_size + label_gap):.3f}" '
+                    f'y="{row_y:.3f}" font-size="{entry_font_size:.3f}" fill="#0f172a" '
+                    f'dominant-baseline="middle">{html.escape(label)}</text>'
+                )
+            )
+        legend.append("</g>")
+
+        total_width = legend_x + content_width + (24.0 * scale)
+        total_height = max(tree_height, legend_y + legend_height + (24.0 * scale))
+        return "\n".join(legend), total_width, total_height

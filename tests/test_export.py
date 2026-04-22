@@ -161,7 +161,7 @@ class ExportTests(unittest.TestCase):
 
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn('text-anchor="middle"', svg_text)
-        self.assertIn('>Røot</text>', svg_text)
+        self.assertIn(">Røot</text>", svg_text)
 
     def test_horizontal_svg_leaf_labels_use_right_alignment(self) -> None:
         """Place horizontal leaf labels to the right of the nodes."""
@@ -264,9 +264,7 @@ class ExportTests(unittest.TestCase):
             line_style="split",
             output_svg=output_svg,
             show_labels=True,
-            options=LayoutOptions(
-                colour_mode="palette", palette="scientific", label_mode="leaves"
-            ),
+            options=LayoutOptions(colour_mode="palette", palette="scientific", label_mode="leaves"),
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
@@ -274,6 +272,32 @@ class ExportTests(unittest.TestCase):
         self.assertIn('stroke="#56b4e9"', svg_text)
         self.assertIn('fill="#e69f00"', svg_text)
         self.assertIn('fill="#56b4e9"', svg_text)
+
+    def test_svg_palette_mode_can_render_a_legend(self) -> None:
+        """Render a compact palette legend alongside the SVG."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "palette-legend.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="radial",
+            line_style="split",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(
+                colour_mode="palette",
+                palette="scientific",
+                label_mode="leaves",
+                show_palette_legend=True,
+            ),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('id="palette-legend"', svg_text)
+        self.assertIn("Palette legend", svg_text)
+        self.assertIn('class="legend-swatch"', svg_text)
+        self.assertIn('class="legend-label"', svg_text)
 
     def test_svg_palette_mode_can_colour_deeper_branches(self) -> None:
         """Colour a deeper branch level instead of only root children."""
