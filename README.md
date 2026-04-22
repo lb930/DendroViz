@@ -1,10 +1,29 @@
 # DendroViz
 
-`DendroViz` takes CSV, JSON, or Newick input and turns it into a dendrogram dataset. The CSV output can be used in Tableau and other charting tools. The tool can also create SVG images.
+[![GitHub Actions CI](https://github.com/lb930/DendroViz/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/lb930/DendroViz/actions/workflows/ci.yml)
+[![PyPI version](https://img.shields.io/pypi/v/dendroviz.svg)](https://pypi.org/project/dendroviz/)
+[![License](https://img.shields.io/pypi/l/dendroviz.svg)](https://github.com/lb930/DendroViz/blob/main/LICENSE)
+<br><br>`DendroViz` takes CSV, JSON, or Newick input and turns it into a dendrogram dataset. The CSV output can be used in Tableau and other charting tools. The tool can also create SVG images.
+
+<table>
+  <tr>
+    <td align="center">
+      <strong>Vertical tree with straight lines</strong><br>
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/dummy-small-vertical-straight.png" alt="Vertical straight preview" width="250">
+    </td>
+    <td align="center">
+      <strong>Horizontal tree with curved lines</strong><br>
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/dummy-small-horizontal-curved.png" alt="Horizontal curved preview" width="250">
+    </td>
+    <td align="center">
+      <strong>Radial tree with split lines</strong><br>
+      <img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/dummy-deep-radial-split.png" alt="Radial split preview" width="250">
+    </td>
+  </tr>
+</table>
 
 ## Table of Contents
 
-- [Examples](#examples)
 - [Installation](#installation)
 - [Quickstart](#quickstart)
 - [Input Format](#input-format)
@@ -12,25 +31,6 @@
 - [Release Process](#release-process)
 - [CLI Reference](#cli-reference)
 - [Development](#development)
-
-## Examples
-
-<table>
-  <tr>
-    <td align="center">
-      <strong>Vertical tree with straight lines</strong><br>
-      <img src="build/dummy-small-vertical-straight.svg" alt="Vertical straight SVG" width="250">
-    </td>
-    <td align="center">
-      <strong>Horizontal tree with curved lines</strong><br>
-      <img src="build/dummy-small-horizontal-curved.svg" alt="Horizontal curved SVG" width="250">
-    </td>
-    <td align="center">
-      <strong>Radial tree with split lines</strong><br>
-      <img src="build/dummy-deep-radial-split.svg" alt="Radial split SVG" width="250">
-    </td>
-  </tr>
-</table>
 
 ## Installation
 
