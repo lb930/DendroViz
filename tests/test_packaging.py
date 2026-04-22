@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import importlib
-from packaging.version import Version
 import unittest
 from unittest import mock
+
+from packaging.version import Version
 
 from tests.helpers import write_csv_file
 
