@@ -7,25 +7,22 @@ from pathlib import Path
 NORMALIZATIONS: tuple[tuple[re.Pattern[str], str], ...] = (
     (
         re.compile(
-            r'src="https://raw\.githubusercontent\.com/lb930/DendroViz/main/assets/'
-            r'dummy-small-vertical-straight\.(?:png|svg)"|'
-            r'src="build/dummy-small-vertical-straight\.svg"',
+            r'src="(?:https://raw\.githubusercontent\.com/lb930/DendroViz/main/)?'
+            r'(?:assets/dummy-small-vertical-straight\.png|build/dummy-small-vertical-straight\.svg)"',
         ),
         'src="IMAGE_VERTICAL_STRAIGHT"',
     ),
     (
         re.compile(
-            r'src="https://raw\.githubusercontent\.com/lb930/DendroViz/main/assets/'
-            r'dummy-small-horizontal-curved\.(?:png|svg)"|'
-            r'src="build/dummy-small-horizontal-curved\.svg"',
+            r'src="(?:https://raw\.githubusercontent\.com/lb930/DendroViz/main/)?'
+            r'(?:assets/dummy-small-horizontal-curved\.png|build/dummy-small-horizontal-curved\.svg)"',
         ),
         'src="IMAGE_HORIZONTAL_CURVED"',
     ),
     (
         re.compile(
-            r'src="https://raw\.githubusercontent\.com/lb930/DendroViz/main/assets/'
-            r'dummy-deep-radial-split\.(?:png|svg)"|'
-            r'src="build/dummy-deep-radial-split\.svg"',
+            r'src="(?:https://raw\.githubusercontent\.com/lb930/DendroViz/main/)?'
+            r'(?:assets/dummy-deep-radial-split\.png|build/dummy-deep-radial-split\.svg)"',
         ),
         'src="IMAGE_RADIAL_SPLIT"',
     ),
