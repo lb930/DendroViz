@@ -50,11 +50,6 @@ class TreeCsvLoader:
 
     def _load_newick_rows(self, source: str | Path | io.TextIOBase) -> list[InputNode]:
         """Load and normalise rows from a Newick file or stream."""
-        if isinstance(source, (str, Path)):
-            source = Path(path)
-            if not source.exists():
-                raise ValidationError(f"Input Newick file does not exist: {source}")
-
         try:
             from Bio import Phylo
         except ImportError as exc:
@@ -64,6 +59,8 @@ class TreeCsvLoader:
 
         try:
             phylogeny = Phylo.read(source, "newick")
+        except FileNotFoundError as exc:
+            raise ValidationError(f"Input Newick file does not exist: {source}") from exc
         except Exception as exc:
             raise ValidationError(f"Unable to parse Newick input: {source}") from exc
 
