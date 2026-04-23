@@ -54,14 +54,15 @@ class TreeCsvLoader:
             raise ValidationError(f"Input Newick file does not exist: {newick_path}")
 
         try:
-            from Bio import Phylo  # type: ignore[import-not-found]
+            from Bio import Phylo
         except ImportError as exc:
             raise ImportError(
                 "Newick support requires BioPython. Install it with: pip install biopython"
             ) from exc
 
         try:
-            phylogeny = Phylo.read(str(newick_path), "newick")
+            phylo_module: Any = Phylo
+            phylogeny = phylo_module.read(str(newick_path), "newick")
         except Exception as exc:
             raise ValidationError(f"Unable to parse Newick input: {newick_path}") from exc
 

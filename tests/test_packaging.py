@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib
 import unittest
+from types import ModuleType
 from unittest import mock
 
 from packaging.version import Version
@@ -32,11 +33,11 @@ class PackagingTests(unittest.TestCase):
 
         def raising_import(
             name: str,
-            globals: object = None,
-            locals: object = None,
+            globals: dict[str, object] | None = None,
+            locals: dict[str, object] | None = None,
             fromlist: tuple[str, ...] = (),
             level: int = 0,
-        ) -> object:
+        ) -> ModuleType:
             """Pretend that BioPython is unavailable."""
             if name == "Bio":
                 raise ImportError("No module named Bio")

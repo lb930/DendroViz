@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.4
+
+- Fixed SVG tooltip template typing and added configurable template-based hover text.
+
 ## 0.1.0
 
 - Initial public release of `dendroviz`.

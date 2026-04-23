@@ -4,6 +4,7 @@ import unittest
 from pathlib import Path
 
 from dendroviz import DendrogramGenerator, LayoutOptions
+from dendroviz.models import LineStyle, TreeLayout
 from tests.helpers import write_csv_file
 
 
@@ -27,8 +28,8 @@ class GenerationTests(unittest.TestCase):
         """Exercise every supported layout and line-style combination."""
         generator = DendrogramGenerator()
         path = write_sample_tree()
-        layouts = ["radial", "vertical", "horizontal"]
-        line_styles = ["curved", "split", "straight"]
+        layouts: list[TreeLayout] = ["radial", "vertical", "horizontal"]
+        line_styles: list[LineStyle] = ["curved", "split", "straight"]
 
         for layout in layouts:
             for line_style in line_styles:

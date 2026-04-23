@@ -5,8 +5,9 @@ import logging
 import math
 import re
 import string
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
+from typing import Any
 
 from .errors import ValidationError
 from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
@@ -18,7 +19,12 @@ PALETTE_FALLBACK_COLOUR = "#64748b"
 class _CaseInsensitiveFormatter(string.Formatter):
     """Format strings with case-insensitive field names."""
 
-    def get_value(self, key, args, kwargs):  # type: ignore[override]
+    def get_value(
+        self,
+        key: int | str,
+        args: Sequence[Any],
+        kwargs: Mapping[str, Any],
+    ) -> Any:
         if isinstance(key, str):
             lowered = key.lower()
             if lowered in kwargs:

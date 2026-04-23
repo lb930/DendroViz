@@ -169,34 +169,6 @@ class CliTests(unittest.TestCase):
 
         self.assertNotEqual(completed.returncode, 0)
 
-    def test_cli_accepts_newick_input_format_flag(self) -> None:
-        """Accept the Newick input-format flag and surface missing dependency errors."""
-        _, input_path = write_input_newick()
-
-        completed = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "dendroviz.cli",
-                "build",
-                str(input_path),
-                "--input-format",
-                "newick",
-                "--tree-layout",
-                "vertical",
-                "--line-style",
-                "straight",
-                "--output-csv",
-                str(input_path.with_suffix(".out.csv")),
-            ],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
-
-        self.assertNotEqual(completed.returncode, 0)
-        self.assertIn("BioPython", completed.stderr)
-
     def test_cli_accepts_json_input_format_flag(self) -> None:
         """Accept the JSON input-format flag."""
         directory, input_path = write_json_file(

@@ -548,10 +548,18 @@ class ExportTests(unittest.TestCase):
 
         plain_text = plain_svg.read_text(encoding="utf-8")
         labeled_text = labeled_svg.read_text(encoding="utf-8")
-        plain_width = float(re.search(r'width="([0-9.]+)"', plain_text).group(1))
-        labeled_width = float(re.search(r'width="([0-9.]+)"', labeled_text).group(1))
-        plain_height = float(re.search(r'height="([0-9.]+)"', plain_text).group(1))
-        labeled_height = float(re.search(r'height="([0-9.]+)"', labeled_text).group(1))
+        plain_width_match = re.search(r'width="([0-9.]+)"', plain_text)
+        labeled_width_match = re.search(r'width="([0-9.]+)"', labeled_text)
+        plain_height_match = re.search(r'height="([0-9.]+)"', plain_text)
+        labeled_height_match = re.search(r'height="([0-9.]+)"', labeled_text)
+        assert plain_width_match is not None
+        assert labeled_width_match is not None
+        assert plain_height_match is not None
+        assert labeled_height_match is not None
+        plain_width = float(plain_width_match.group(1))
+        labeled_width = float(labeled_width_match.group(1))
+        plain_height = float(plain_height_match.group(1))
+        labeled_height = float(labeled_height_match.group(1))
 
         self.assertGreater(labeled_width, plain_width)
         self.assertGreater(labeled_height, plain_height)
@@ -586,8 +594,12 @@ class ExportTests(unittest.TestCase):
 
         plain_text = plain_svg.read_text(encoding="utf-8")
         scaled_text = scaled_svg.read_text(encoding="utf-8")
-        plain_width = float(re.search(r'width="([0-9.]+)"', plain_text).group(1))
-        scaled_width = float(re.search(r'width="([0-9.]+)"', scaled_text).group(1))
+        plain_width_match = re.search(r'width="([0-9.]+)"', plain_text)
+        scaled_width_match = re.search(r'width="([0-9.]+)"', scaled_text)
+        assert plain_width_match is not None
+        assert scaled_width_match is not None
+        plain_width = float(plain_width_match.group(1))
+        scaled_width = float(scaled_width_match.group(1))
 
         self.assertGreater(scaled_width, plain_width * 1.9)
         self.assertIn("stroke-width: 4.000", scaled_text)
