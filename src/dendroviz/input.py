@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import io
 import json
 import logging
 from collections.abc import Mapping
@@ -47,11 +48,12 @@ class TreeCsvLoader:
         logger.info("Loaded %d CSV rows from %s", len(nodes), csv_path)
         return nodes
 
-    def _load_newick_rows(self, path: str | Path) -> list[InputNode]:
-        """Load and normalise rows from a Newick file."""
-        newick_path = Path(path)
-        if not newick_path.exists():
-            raise ValidationError(f"Input Newick file does not exist: {newick_path}")
+    def _load_newick_rows(self, source: str | Path | io.TextIOBase) -> list[InputNode]:
+        """Load and normalise rows from a Newick file or stream."""
+        if isinstance(source, (str, Path)):
+            source = Path(path)
+            if not source.exists():
+                raise ValidationError(f"Input Newick file does not exist: {source}")
 
         try:
             from Bio import Phylo
@@ -61,10 +63,9 @@ class TreeCsvLoader:
             ) from exc
 
         try:
-            phylo_module: Any = Phylo
-            phylogeny = phylo_module.read(str(newick_path), "newick")
+            phylogeny = Phylo.read(source, "newick")
         except Exception as exc:
-            raise ValidationError(f"Unable to parse Newick input: {newick_path}") from exc
+            raise ValidationError(f"Unable to parse Newick input: {source}") from exc
 
         root = getattr(phylogeny, "root", None)
         if root is None:
@@ -115,7 +116,7 @@ class TreeCsvLoader:
 
         visit(root, None, 0)
         self._validate_rows(nodes)
-        logger.info("Loaded %d Newick rows from %s", len(nodes), newick_path)
+        logger.info("Loaded %d Newick rows from %s", len(nodes), source)
         return nodes
 
     def _load_json_rows(self, path: str | Path) -> list[InputNode]:
