@@ -81,6 +81,15 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Add short hover titles to SVG elements.",
     )
+    build_parser.add_argument(
+        "--svg-title-parts",
+        default="label",
+        help="Comma-separated tooltip parts for SVG nodes, for example label or label,group.",
+    )
+    build_parser.add_argument(
+        "--svg-title-template",
+        help="Tooltip template for SVG nodes, for example 'Family: {group}\\nLanguage: {label}'.",
+    )
     build_parser.add_argument("--node-colour", default="#0f172a")
     build_parser.add_argument("--edge-colour", default="#334155")
     build_parser.add_argument("--label-colour", default="#111827")
@@ -112,6 +121,23 @@ def main(argv: list[str] | None = None) -> int:
             "At least one of --output-csv, --output-json, or --output-svg must be provided."
         )
 
+    svg_title_parts = tuple(
+        part.strip().lower()
+        for part in str(args.svg_title_parts).split(",")
+        if part.strip()
+    )
+    if not svg_title_parts:
+        parser.error("--svg-title-parts must include at least one part.")
+
+    svg_title_template = args.svg_title_template
+    if svg_title_template is not None:
+        svg_title_template = (
+            str(svg_title_template)
+            .replace("\\n", "\n")
+            .replace("\\t", "\t")
+            .replace("\\r", "\r")
+        )
+
     logger.info(
         "Building dendrogram from %s (%s) using %s/%s",
         args.input_path,
@@ -139,6 +165,8 @@ def main(argv: list[str] | None = None) -> int:
         show_palette_legend=args.show_palette_legend,
         show_svg_data_attributes=args.show_svg_data_attributes,
         show_svg_titles=args.show_svg_titles,
+        svg_title_parts=svg_title_parts,
+        svg_title_template=svg_title_template,
         node_colour=args.node_colour,
         edge_colour=args.edge_colour,
         label_colour=args.label_colour,

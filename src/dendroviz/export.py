@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import re
+import string
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -12,6 +13,17 @@ from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
 
 logger = logging.getLogger(__name__)
 PALETTE_FALLBACK_COLOUR = "#64748b"
+
+
+class _CaseInsensitiveFormatter(string.Formatter):
+    """Format strings with case-insensitive field names."""
+
+    def get_value(self, key, args, kwargs):  # type: ignore[override]
+        if isinstance(key, str):
+            lowered = key.lower()
+            if lowered in kwargs:
+                return kwargs[lowered]
+        return super().get_value(key, args, kwargs)
 
 SET1_PALETTE = [
     "#e41a1c",
@@ -940,10 +952,14 @@ class SvgExporter:
         result: RenderResult,
         options: LayoutOptions,
     ) -> str:
-        """Return an optional short SVG title for a node-related element."""
+        """Return an optional SVG title for a node-related element."""
         if not options.show_svg_titles:
             return ""
-        return f"<title>{html.escape(node.label)}</title>"
+        if options.svg_title_template is not None:
+            title = self._svg_title_from_template(node, result, options)
+        else:
+            title = "\n".join(self._svg_title_lines_for_node(node, result, options))
+        return f"<title>{html.escape(title)}</title>"
 
     def _svg_element_title_for_edge(
         self,
@@ -957,6 +973,66 @@ class SvgExporter:
         source = result.tree.node_map[edge.source_id]
         target = result.tree.node_map[edge.target_id]
         return f"<title>{html.escape(source.label)} → {html.escape(target.label)}</title>"
+
+    def _svg_title_lines_for_node(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        options: LayoutOptions,
+    ) -> list[str]:
+        """Build tooltip lines for a node-related element."""
+        lines: list[str] = []
+        group_label = self._svg_group_label(node, result, options.palette_depth)
+        for part in options.svg_title_parts:
+            if part == "label":
+                lines.append(node.label)
+            elif part == "group":
+                lines.append(f"Group: {group_label}")
+            elif part == "id":
+                lines.append(f"ID: {node.node_id}")
+            elif part == "depth":
+                lines.append(f"Depth: {node.depth}")
+            else:
+                raise ValueError(f"Unsupported SVG title part: {part}")
+        return lines
+
+    def _svg_title_from_template(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        options: LayoutOptions,
+    ) -> str:
+        """Render a node tooltip from a user-supplied template."""
+        template = self._normalize_svg_title_template(options.svg_title_template or "")
+        group_label = self._svg_group_label(node, result, options.palette_depth)
+        mapping = {
+            "label": node.label,
+            "group": group_label,
+            "id": node.node_id,
+            "depth": str(node.depth),
+            "branch_path": "|".join(ancestor.label for ancestor in result.tree.path_to_node(node)),
+        }
+        formatter = _CaseInsensitiveFormatter()
+        try:
+            return formatter.vformat(template, (), mapping)
+        except KeyError as exc:
+            raise ValueError(f"Unknown SVG title placeholder: {exc.args[0]}") from exc
+
+    def _normalize_svg_title_template(self, template: str) -> str:
+        """Normalize escape sequences in a tooltip template."""
+        return template.replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r")
+
+    def _svg_group_label(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        branch_depth: int,
+    ) -> str:
+        """Return the palette group label for a node."""
+        branch = resolve_branch_root(node, result, branch_depth)
+        if branch is None:
+            return result.root.label
+        return branch.label
 
     def _palette_legend_entries(
         self,
