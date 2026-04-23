@@ -370,6 +370,31 @@ class ExportTests(unittest.TestCase):
         svg_text = output_svg.read_text(encoding="utf-8")
         self.assertIn("<title>A1 Leaf\nGroup: A1</title>", svg_text)
 
+    def test_svg_titles_can_use_templates(self) -> None:
+        """Render SVG titles from a custom template."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_deep_branch_tree_csv()
+        output_svg = directory / "titles-template.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="vertical",
+            line_style="straight",
+            output_svg=output_svg,
+            show_labels=True,
+            options=LayoutOptions(
+                colour_mode="palette",
+                palette="set1",
+                palette_depth=2,
+                label_mode="leaves",
+                show_svg_titles=True,
+                svg_title_template="Family: {group}\\nLanguage: {Label}",
+            ),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn("<title>Family: A1\nLanguage: A1 Leaf</title>", svg_text)
+
     def test_svg_palette_mode_can_colour_deeper_branches(self) -> None:
         """Colour a deeper branch level instead of only root children."""
         generator = DendrogramGenerator()

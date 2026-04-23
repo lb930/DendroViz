@@ -246,6 +246,7 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | `--show-svg-data-attributes` | flag | Adds `data-*` metadata to SVG nodes and edges for browser scripting |
 | `--show-svg-titles` | flag | Adds short hover titles to SVG nodes and edges |
 | `--svg-title-parts` | comma-separated parts | Controls node tooltip content, for example `label` or `label,group` |
+| `--svg-title-template` | template string | Controls node tooltip text, for example `Family: {group}\nLanguage: {label}` |
 | `--node-colour` | hex colour | Fallback node colour in global mode |
 | `--edge-colour` | hex colour | Fallback edge colour in global mode |
 | `--label-colour` | hex colour | Fallback label colour in global mode |
