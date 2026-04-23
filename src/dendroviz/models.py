@@ -150,6 +150,7 @@ class LayoutOptions:
     show_palette_legend: bool = False
     show_svg_data_attributes: bool = False
     show_svg_titles: bool = False
+    svg_title_parts: tuple[str, ...] = ("label",)
     edge_colour: str = "#334155"
     node_colour: str = "#0f172a"
     label_colour: str = "#111827"

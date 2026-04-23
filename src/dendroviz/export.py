@@ -940,10 +940,11 @@ class SvgExporter:
         result: RenderResult,
         options: LayoutOptions,
     ) -> str:
-        """Return an optional short SVG title for a node-related element."""
+        """Return an optional SVG title for a node-related element."""
         if not options.show_svg_titles:
             return ""
-        return f"<title>{html.escape(node.label)}</title>"
+        lines = self._svg_title_lines_for_node(node, result, options)
+        return f"<title>{html.escape(chr(10).join(lines))}</title>"
 
     def _svg_element_title_for_edge(
         self,
@@ -957,6 +958,40 @@ class SvgExporter:
         source = result.tree.node_map[edge.source_id]
         target = result.tree.node_map[edge.target_id]
         return f"<title>{html.escape(source.label)} → {html.escape(target.label)}</title>"
+
+    def _svg_title_lines_for_node(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        options: LayoutOptions,
+    ) -> list[str]:
+        """Build tooltip lines for a node-related element."""
+        lines: list[str] = []
+        group_label = self._svg_group_label(node, result, options.palette_depth)
+        for part in options.svg_title_parts:
+            if part == "label":
+                lines.append(node.label)
+            elif part == "group":
+                lines.append(f"Group: {group_label}")
+            elif part == "id":
+                lines.append(f"ID: {node.node_id}")
+            elif part == "depth":
+                lines.append(f"Depth: {node.depth}")
+            else:
+                raise ValueError(f"Unsupported SVG title part: {part}")
+        return lines
+
+    def _svg_group_label(
+        self,
+        node: TreeNode,
+        result: RenderResult,
+        branch_depth: int,
+    ) -> str:
+        """Return the palette group label for a node."""
+        branch = resolve_branch_root(node, result, branch_depth)
+        if branch is None:
+            return result.root.label
+        return branch.label
 
     def _palette_legend_entries(
         self,
