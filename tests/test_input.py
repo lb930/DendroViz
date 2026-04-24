@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import io
 import pathlib
 import sys
 import types
@@ -134,7 +133,7 @@ class LoadTreeCsvTests(unittest.TestCase):
     def test_loads_newick_tree_with_soft_dependency_from_stream(self) -> None:
         """Load a Newick tree through a mocked BioPython dependency using a stream."""
         generator = DendrogramGenerator()
-        stream = io.StringIO("(ignored);")
+        stream = StringIO("(ignored);")
         fake_phylo = self._create_fake_phylo()
         fake_bio = self._create_fake_bio(fake_phylo)
 
@@ -236,7 +235,7 @@ class LoadTreeCsvTests(unittest.TestCase):
         self,
         tree: types.SimpleNamespace,
         fake_phylo: types.SimpleNamespace,
-        expected_source: str | pathlib.Path | io.TextIOBase,
+        expected_source: str | pathlib.Path | StringIO,
     ) -> None:
         """Helper to run common assertions for Newick tree loading."""
         self.assertEqual(tree.root.label, "Root")

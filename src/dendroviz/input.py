@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import csv
-import io
 import json
 import logging
 from collections.abc import Mapping
@@ -64,7 +63,7 @@ class TreeCsvLoader:
         logger.info("Loaded %d CSV rows from %s", len(nodes), source_name)
         return nodes
 
-    def _load_newick_rows(self, source: str | Path | io.TextIOBase) -> list[InputNode]:
+    def _load_newick_rows(self, source: str | Path | TextIOBase) -> list[InputNode]:
         """Load and normalise rows from a Newick file or stream."""
         try:
             from Bio import Phylo
