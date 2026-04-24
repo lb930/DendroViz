@@ -1,8 +1,21 @@
 # Changelog
 
-## 0.1.4
+## 0.1.5
 
-- Fixed SVG tooltip template typing and added configurable template-based hover text.
+- CSV and JSON loaders now accept in-memory text streams as well as file paths.
+- Vertical leaf labels now support auto placement below the node.
+
+## 0.1.3
+
+- Added group metadata to SVG tooltips.
+
+## 0.1.2
+
+- Relaxed README parity normalisation.
+
+## 0.1.1
+
+- Fixed PyPI image rendering and packaging.
 
 ## 0.1.0
 

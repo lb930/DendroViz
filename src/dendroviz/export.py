@@ -31,6 +31,7 @@ class _CaseInsensitiveFormatter(string.Formatter):
                 return kwargs[lowered]
         return super().get_value(key, args, kwargs)
 
+
 SET1_PALETTE = [
     "#e41a1c",
     "#377eb8",
@@ -393,12 +394,11 @@ class JsonExporter:
         path: str | Path,
         result: RenderResult,
         options: LayoutOptions,
-        show_labels: bool,
     ) -> Path:
         """Write a JSON rendering to disk."""
         output_path = Path(path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        payload = self._build_payload(result, options, show_labels)
+        payload = self._build_payload(result, options)
         logger.info(
             "Writing JSON export to %s (%d nodes, %d edges)",
             output_path,
@@ -412,14 +412,13 @@ class JsonExporter:
         self,
         result: RenderResult,
         options: LayoutOptions,
-        show_labels: bool,
     ) -> dict[str, object]:
         """Build a JSON-serializable render payload."""
         branch_colours = branch_colours_for(result, options)
         return {
             "tree_layout": result.tree_layout,
             "line_style": result.line_style,
-            "show_labels": show_labels,
+            "show_labels": options.label_mode != "none",
             "options": self._options_payload(options),
             "nodes": [
                 self._node_payload(node, result, options, branch_colours) for node in result.nodes
@@ -552,7 +551,6 @@ class SvgExporter:
         self,
         path: str | Path,
         result: RenderResult,
-        show_labels: bool,
         options: LayoutOptions,
     ) -> Path:
         """Write an SVG rendering to disk."""
@@ -568,7 +566,7 @@ class SvgExporter:
             len(result.edges),
         )
 
-        min_x, min_y, width, height = self._compute_bounds(result.nodes, options, show_labels)
+        min_x, min_y, width, height = self._compute_bounds(result.nodes, options)
         legend_svg = ""
         if legend_entries:
             legend_svg, legend_width, legend_height = self._svg_palette_legend(
@@ -601,7 +599,6 @@ class SvgExporter:
                 min_y,
                 options,
                 scale,
-                show_labels,
                 result,
                 branch_colours,
             )
@@ -632,7 +629,6 @@ class SvgExporter:
         self,
         nodes: list[TreeNode],
         options: LayoutOptions,
-        show_labels: bool,
     ) -> tuple[float, float, float, float]:
         """Compute the SVG bounding box for a tree."""
         min_x = min(node.x for node in nodes)
@@ -640,7 +636,7 @@ class SvgExporter:
         min_y = min(node.y for node in nodes)
         max_y = max(node.y for node in nodes)
         label_padding = 0.0
-        if show_labels and options.label_mode != "none":
+        if options.label_mode != "none":
             label_padding = max(
                 options.node_radius + options.label_offset + (options.font_size * 8), 0.0
             )
@@ -685,7 +681,6 @@ class SvgExporter:
         min_y: float,
         options: LayoutOptions,
         scale: float,
-        show_labels: bool,
         result: RenderResult,
         branch_colours: dict[str, str],
     ) -> str:
@@ -708,7 +703,7 @@ class SvgExporter:
                 f'cx="{x:.3f}" cy="{y:.3f}" r="{(options.node_radius * scale):.3f}">'
                 f"{title}</circle>"
             )
-        if show_labels and self._should_render_label(node, options):
+        if self._should_render_label(node, options):
             parts.append(
                 self._svg_label(
                     node,
@@ -727,10 +722,7 @@ class SvgExporter:
         """Infer the rendered tree layout from a node's coordinates."""
         if node.angle is not None and node.radius is not None:
             return "radial"
-        root = result.root
-        if abs(root.y - node.y) > abs(root.x - node.x):
-            return "vertical"
-        return "horizontal"
+        return result.tree_layout
 
     def _should_render_node(self, node: TreeNode, options: LayoutOptions) -> bool:
         """Return whether the node marker should be rendered."""
@@ -795,6 +787,21 @@ class SvgExporter:
                 label_x = x
                 label_y = y - ((options.node_radius + options.label_offset) * scale)
                 anchor = "middle"
+        elif tree_layout == "vertical" and node.is_leaf and options.label_orientation == "auto":
+            label_x = x
+            estimated_text_width = max(len(node.label), 1) * options.font_size * 0.6
+            label_y = y + (
+                (options.node_radius + options.label_offset) * scale
+                + (estimated_text_width * scale / 2.0)
+            )
+            anchor = "middle"
+            return (
+                f'<text class="label" {metadata} x="0" y="0" '
+                f'font-size="{options.font_size * scale:.3f}" fill="{label_colour}" '
+                f'text-anchor="{anchor}" dominant-baseline="middle" '
+                f'transform="translate({label_x:.3f} {label_y:.3f}) rotate(270.000)">'
+                f"{title}{html.escape(node.label)}</text>"
+            )
         else:
             label_x = x + ((options.node_radius + options.label_offset) * scale)
             label_y = y
