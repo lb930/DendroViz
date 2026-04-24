@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from io import TextIOBase
 from pathlib import Path
 
 from .export import CsvExporter, JsonExporter, SvgExporter
@@ -27,17 +28,22 @@ class DendrogramGenerator:
         self.json_exporter = json_exporter or JsonExporter()
         self.svg_exporter = svg_exporter or SvgExporter()
 
-    def load_tree_csv(self, path: str | Path) -> TreeModel:
-        """Load a CSV tree file into a tree model."""
+    def load_tree_csv(self, path: str | Path | TextIOBase) -> TreeModel:
+        """Load a CSV tree file or text stream into a tree model."""
         return self.loader.load_tree(path, input_format="csv")
 
-    def load_tree(self, path: str | Path, *, input_format: InputFormat = "csv") -> TreeModel:
+    def load_tree(
+        self,
+        path: str | Path | TextIOBase,
+        *,
+        input_format: InputFormat = "csv",
+    ) -> TreeModel:
         """Load a tree file in the requested input format."""
         return self.loader.load_tree(path, input_format=input_format)
 
     def generate_tree(
         self,
-        input_path: str | Path,
+        input_path: str | Path | TextIOBase,
         *,
         tree_layout: TreeLayout,
         line_style: LineStyle,

@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import types
 import unittest
+from io import StringIO
 from types import ModuleType
 from unittest import mock
 
@@ -151,6 +152,39 @@ class LoadTreeCsvTests(unittest.TestCase):
         )
 
         tree = generator.load_tree(path, input_format="json")
+
+        self.assertEqual(tree.root.node_id, "root")
+        self.assertEqual([node.node_id for node in tree.nodes], ["root", "child_a", "child_b"])
+
+    def test_loads_csv_tree_from_stream(self) -> None:
+        """Load a CSV tree from an in-memory text stream."""
+        generator = DendrogramGenerator()
+        stream = StringIO(
+            "id,parent,label,order\n"
+            "root,,Root,0\n"
+            "child_b,root,Child B,1\n"
+            "child_a,root,Child A,0\n"
+        )
+
+        tree = generator.load_tree_csv(stream)
+
+        self.assertEqual(tree.root.node_id, "root")
+        self.assertEqual([node.node_id for node in tree.nodes], ["root", "child_a", "child_b"])
+
+    def test_loads_json_tree_from_stream(self) -> None:
+        """Load a JSON tree from an in-memory text stream."""
+        generator = DendrogramGenerator()
+        stream = StringIO(
+            """
+            [
+                {"id": "root", "parent": null, "label": "Root", "order": 0},
+                {"id": "child_b", "parent": "root", "label": "Child B", "order": 1},
+                {"id": "child_a", "parent": "root", "label": "Child A", "order": 0}
+            ]
+            """
+        )
+
+        tree = generator.load_tree(stream, input_format="json")
 
         self.assertEqual(tree.root.node_id, "root")
         self.assertEqual([node.node_id for node in tree.nodes], ["root", "child_a", "child_b"])

@@ -4,6 +4,7 @@ import csv
 import json
 import logging
 from collections.abc import Mapping
+from io import TextIOBase
 from pathlib import Path
 from typing import Any, Sequence
 
@@ -16,7 +17,12 @@ logger = logging.getLogger(__name__)
 class TreeCsvLoader:
     REQUIRED_COLUMNS = ("id", "parent", "label", "order")
 
-    def load_rows(self, path: str | Path, *, input_format: InputFormat = "csv") -> list[InputNode]:
+    def load_rows(
+        self,
+        path: str | Path | TextIOBase,
+        *,
+        input_format: InputFormat = "csv",
+    ) -> list[InputNode]:
         """Load raw input rows in the requested format."""
         logger.debug("Loading %s input from %s", input_format, path)
         if input_format == "csv":
@@ -27,28 +33,40 @@ class TreeCsvLoader:
             return self._load_json_rows(path)
         raise ValidationError(f"Unsupported input format: {input_format}")
 
-    def _load_csv_rows(self, path: str | Path) -> list[InputNode]:
-        """Load and validate rows from a CSV file."""
-        csv_path = Path(path)
-        if not csv_path.exists():
-            raise ValidationError(f"Input CSV does not exist: {csv_path}")
-
-        with csv_path.open("r", encoding="utf-8", newline="") as handle:
-            reader = csv.DictReader(handle)
+    def _load_csv_rows(self, source: str | Path | TextIOBase) -> list[InputNode]:
+        """Load and validate rows from a CSV file or text stream."""
+        if isinstance(source, TextIOBase):
+            reader = csv.DictReader(source)
+            source_name: object = getattr(source, "name", source)
             self._validate_headers(reader.fieldnames)
             nodes = [
                 self._parse_row(row, row_number) for row_number, row in enumerate(reader, start=2)
             ]
+        else:
+            csv_path = Path(source)
+            if not csv_path.exists():
+                raise ValidationError(f"Input CSV does not exist: {csv_path}")
+
+            with csv_path.open("r", encoding="utf-8", newline="") as handle:
+                reader = csv.DictReader(handle)
+                self._validate_headers(reader.fieldnames)
+                nodes = [
+                    self._parse_row(row, row_number)
+                    for row_number, row in enumerate(reader, start=2)
+                ]
+            source_name = csv_path
 
         if not nodes:
             raise ValidationError("Input CSV contains headers but no data rows.")
 
         self._validate_rows(nodes)
-        logger.info("Loaded %d CSV rows from %s", len(nodes), csv_path)
+        logger.info("Loaded %d CSV rows from %s", len(nodes), source_name)
         return nodes
 
-    def _load_newick_rows(self, path: str | Path) -> list[InputNode]:
+    def _load_newick_rows(self, path: str | Path | TextIOBase) -> list[InputNode]:
         """Load and normalise rows from a Newick file."""
+        if isinstance(path, TextIOBase):
+            raise ValidationError("Newick input must be provided as a filesystem path.")
         newick_path = Path(path)
         if not newick_path.exists():
             raise ValidationError(f"Input Newick file does not exist: {newick_path}")
@@ -118,16 +136,24 @@ class TreeCsvLoader:
         logger.info("Loaded %d Newick rows from %s", len(nodes), newick_path)
         return nodes
 
-    def _load_json_rows(self, path: str | Path) -> list[InputNode]:
-        """Load and normalise rows from a JSON file."""
-        json_path = Path(path)
-        if not json_path.exists():
-            raise ValidationError(f"Input JSON file does not exist: {json_path}")
+    def _load_json_rows(self, source: str | Path | TextIOBase) -> list[InputNode]:
+        """Load and normalise rows from a JSON file or text stream."""
+        if isinstance(source, TextIOBase):
+            source_name: object = getattr(source, "name", source)
+            try:
+                payload = json.load(source)
+            except json.JSONDecodeError as exc:
+                raise ValidationError(f"Unable to parse JSON input: {source_name}") from exc
+        else:
+            json_path = Path(source)
+            if not json_path.exists():
+                raise ValidationError(f"Input JSON file does not exist: {json_path}")
 
-        try:
-            payload = json.loads(json_path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError as exc:
-            raise ValidationError(f"Unable to parse JSON input: {json_path}") from exc
+            try:
+                payload = json.loads(json_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise ValidationError(f"Unable to parse JSON input: {json_path}") from exc
+            source_name = json_path
 
         rows = self._extract_json_rows(payload)
         if not rows:
@@ -138,10 +164,15 @@ class TreeCsvLoader:
             for row_number, row in enumerate(rows, start=1)
         ]
         self._validate_rows(nodes)
-        logger.info("Loaded %d JSON rows from %s", len(nodes), json_path)
+        logger.info("Loaded %d JSON rows from %s", len(nodes), source_name)
         return nodes
 
-    def load_tree(self, path: str | Path, *, input_format: InputFormat = "csv") -> TreeModel:
+    def load_tree(
+        self,
+        path: str | Path | TextIOBase,
+        *,
+        input_format: InputFormat = "csv",
+    ) -> TreeModel:
         """Load rows and convert them into a tree model."""
         rows = self.load_rows(path, input_format=input_format)
         tree = self.build_tree(rows)
