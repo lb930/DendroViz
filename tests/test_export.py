@@ -58,7 +58,6 @@ class ExportTests(unittest.TestCase):
             line_style="split",
             output_csv=output_csv,
             output_svg=output_svg,
-            show_labels=True,
         )
 
         self.assertEqual(result.output_csv, output_csv)
@@ -85,7 +84,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_json=output_json,
-            show_labels=True,
         )
 
         self.assertEqual(result.output_json, output_json)
@@ -138,7 +136,7 @@ class ExportTests(unittest.TestCase):
             tree_layout="horizontal",
             line_style="curved",
             output_svg=output_svg,
-            show_labels=False,
+            options=LayoutOptions(label_mode="none"),
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
@@ -156,7 +154,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="horizontal",
             line_style="curved",
             output_svg=output_svg,
-            show_labels=True,
         )
 
         svg_text = output_svg.read_text(encoding="utf-8")
@@ -174,7 +171,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="horizontal",
             line_style="curved",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(label_mode="leaves", show_internal_nodes=False),
         )
 
@@ -182,6 +178,28 @@ class ExportTests(unittest.TestCase):
         self.assertNotIn(">Røot</text>", svg_text)
         self.assertIn('text-anchor="start"', svg_text)
         self.assertNotIn('text-anchor="middle"', svg_text)
+        self.assertNotIn("rotate(270.000", svg_text)
+
+    def test_vertical_svg_leaf_labels_auto_point_downward(self) -> None:
+        """Place vertical leaf labels below the leaf nodes with reversed text flow."""
+        generator = DendrogramGenerator()
+        directory, input_path = write_tree_csv()
+        output_svg = directory / "vertical-auto-leaves.svg"
+
+        generator.generate_tree(
+            input_path,
+            tree_layout="vertical",
+            line_style="straight",
+            output_svg=output_svg,
+            options=LayoutOptions(label_mode="all", label_orientation="auto"),
+        )
+
+        svg_text = output_svg.read_text(encoding="utf-8")
+        self.assertIn('transform="translate(', svg_text)
+        self.assertIn("rotate(270.000)", svg_text)
+        self.assertIn('text-anchor="middle"', svg_text)
+        self.assertIn(">Røot</text>", svg_text)
+        self.assertIn(">Ä</text>", svg_text)
 
     def test_svg_can_hide_internal_nodes_and_show_leaf_labels_only(self) -> None:
         """Hide internal markers while still rendering leaf labels."""
@@ -194,7 +212,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(show_internal_nodes=False, label_mode="leaves"),
         )
 
@@ -214,7 +231,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 show_internal_nodes=False,
                 show_root_node=False,
@@ -236,7 +252,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 show_root_node=True,
                 show_internal_nodes=True,
@@ -259,7 +274,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="curved",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 label_mode="leaves",
                 label_orientation="auto",
@@ -286,7 +300,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(colour_mode="palette", palette="scientific", label_mode="leaves"),
         )
 
@@ -307,7 +320,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 colour_mode="palette",
                 palette="scientific",
@@ -337,7 +349,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="vertical",
             line_style="straight",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(show_svg_titles=True),
         )
 
@@ -356,7 +367,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="vertical",
             line_style="straight",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 colour_mode="palette",
                 palette="set1",
@@ -381,7 +391,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="vertical",
             line_style="straight",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 colour_mode="palette",
                 palette="set1",
@@ -406,7 +415,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="vertical",
             line_style="straight",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 colour_mode="palette",
                 palette="set1",
@@ -436,7 +444,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=output_svg,
-            show_labels=True,
             options=LayoutOptions(
                 colour_mode="palette",
                 palette=["#112233", "#445566"],
@@ -462,7 +469,6 @@ class ExportTests(unittest.TestCase):
                 tree_layout="radial",
                 line_style="split",
                 output_svg=output_svg,
-                show_labels=True,
                 options=LayoutOptions(
                     colour_mode="palette",
                     palette=["#112233", "not-a-colour"],
@@ -482,7 +488,6 @@ class ExportTests(unittest.TestCase):
                 tree_layout="radial",
                 line_style="split",
                 output_svg=output_svg,
-                show_labels=True,
                 options=LayoutOptions(font_size=0),
             )
 
@@ -498,7 +503,6 @@ class ExportTests(unittest.TestCase):
                 tree_layout="radial",
                 line_style="split",
                 output_svg=output_svg,
-                show_labels=True,
                 options=LayoutOptions(label_offset=-1.0),
             )
 
@@ -514,7 +518,6 @@ class ExportTests(unittest.TestCase):
                 tree_layout="radial",
                 line_style="split",
                 output_svg=output_svg,
-                show_labels=True,
                 options=LayoutOptions(radial_sweep_deg=0.0),
             )
 
@@ -530,14 +533,13 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="curved",
             output_svg=plain_svg,
-            show_labels=False,
+            options=LayoutOptions(label_mode="none"),
         )
         generator.generate_tree(
             input_path,
             tree_layout="radial",
             line_style="curved",
             output_svg=labeled_svg,
-            show_labels=True,
             options=LayoutOptions(
                 label_mode="leaves",
                 label_orientation="auto",
@@ -576,7 +578,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=plain_svg,
-            show_labels=True,
             options=LayoutOptions(label_mode="leaves", label_orientation="auto"),
         )
         generator.generate_tree(
@@ -584,7 +585,6 @@ class ExportTests(unittest.TestCase):
             tree_layout="radial",
             line_style="split",
             output_svg=scaled_svg,
-            show_labels=True,
             options=LayoutOptions(
                 label_mode="leaves",
                 label_orientation="auto",

@@ -51,14 +51,13 @@ class DendrogramGenerator:
         output_csv: str | Path | None = None,
         output_json: str | Path | None = None,
         output_svg: str | Path | None = None,
-        show_labels: bool = False,
         options: LayoutOptions | None = None,
     ) -> RenderResult:
         """Load, lay out, route, and optionally export a tree."""
         resolved_options = options or LayoutOptions()
         self._validate_options(resolved_options)
         logger.info("Generating tree...")
-        self._log_unused_option_warnings(resolved_options, show_labels)
+        self._log_unused_option_warnings(resolved_options)
         logger.info(
             "Generating tree from %s (%s) using %s/%s",
             input_path,
@@ -87,20 +86,16 @@ class DendrogramGenerator:
             result.output_csv = self.csv_exporter.export(output_csv, result.csv_rows)
         if output_json is not None:
             logger.info("Writing JSON output to %s", output_json)
-            result.output_json = self.json_exporter.export(
-                output_json, result, resolved_options, show_labels
-            )
+            result.output_json = self.json_exporter.export(output_json, result, resolved_options)
         if output_svg is not None:
             logger.info("Writing SVG output to %s", output_svg)
-            result.output_svg = self.svg_exporter.export(
-                output_svg, result, show_labels, resolved_options
-            )
+            result.output_svg = self.svg_exporter.export(output_svg, result, resolved_options)
         return result
 
-    def _log_unused_option_warnings(self, options: LayoutOptions, show_labels: bool) -> None:
+    def _log_unused_option_warnings(self, options: LayoutOptions) -> None:
         """Warn when the caller sets options that will be ignored."""
         defaults = LayoutOptions()
-        if not show_labels:
+        if options.label_mode == "none":
             label_overrides: list[str] = []
             if options.label_mode != defaults.label_mode:
                 label_overrides.append("--label-mode")
@@ -163,19 +158,17 @@ class DendrogramGenerator:
         path: str | Path,
         result: RenderResult,
         *,
-        show_labels: bool = False,
         options: LayoutOptions | None = None,
     ) -> Path:
         """Write an SVG rendering for a previously generated tree."""
-        return self.svg_exporter.export(path, result, show_labels, options or LayoutOptions())
+        return self.svg_exporter.export(path, result, options or LayoutOptions())
 
     def export_json(
         self,
         path: str | Path,
         result: RenderResult,
         *,
-        show_labels: bool = False,
         options: LayoutOptions | None = None,
     ) -> Path:
         """Write a JSON rendering for a previously generated tree."""
-        return self.json_exporter.export(path, result, options or LayoutOptions(), show_labels)
+        return self.json_exporter.export(path, result, options or LayoutOptions())

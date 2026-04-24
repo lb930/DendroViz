@@ -65,7 +65,6 @@ result = generator.generate_tree(
     output_csv="build/dummy-deep-radial-split.csv",
     output_json="build/dummy-deep.json",
     output_svg="build/dummy-deep-radial-split.svg",
-    show_labels=True,
     options=LayoutOptions(
         label_mode="leaves",
         show_internal_nodes=True,
@@ -89,7 +88,6 @@ dendroviz build examples/dummy_deep.csv \
   --tree-layout radial \
   --line-style split \
   --output-svg build/dummy-deep-radial-split.svg \
-  --show-labels \
   --label-mode leaves \
   --label-orientation auto \
   --label-offset 24 \
@@ -107,7 +105,8 @@ dendroviz build examples/dummy_small.csv \
   --line-style straight \
   --output-csv build/dummy-small-vertical-straight.csv \
   --output-svg build/dummy-small-vertical-straight.svg \
-  --show-labels \
+  --label-mode all \
+  --label-orientation auto \
   --colour-mode palette \
   --palette set2 \
   --palette-depth 2
@@ -117,7 +116,6 @@ dendroviz build examples/dummy_small.csv \
   --line-style curved \
   --output-csv build/dummy-small-horizontal-curved.csv \
   --output-svg build/dummy-small-horizontal-curved.svg \
-  --show-labels \
   --label-mode all \
   --label-offset 28 \
   --colour-mode palette \
@@ -129,7 +127,6 @@ dendroviz build examples/dummy_deep.csv \
   --line-style split \
   --output-csv build/dummy-deep-radial-split.csv \
   --output-svg build/dummy-deep-radial-split.svg \
-  --show-labels \
   --label-orientation auto \
   --colour-mode palette \
   --palette set2 \
@@ -232,16 +229,15 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | Option | Values | Notes |
 | --- | --- | --- |
 | `--log-level` | `CRITICAL`, `ERROR`, `WARNING`, `INFO`, `DEBUG` | Controls CLI verbosity |
-| `--show-labels` | flag | Enables SVG labels |
-| `--label-mode` | `all`, `leaves`, `none` | `leaves` shows labels only on leaf nodes; `none` hides all labels |
-| `--label-orientation` | `horizontal`, `auto` | `auto` flips radial labels to stay readable on the left side |
-| `--label-offset` | number | Pushes labels farther from the tree |
-| `--font-size` | number | Controls label size |
+| `--label-mode` | `all`, `leaves`, `none` | `all` shows every label; `leaves` shows labels only on leaf nodes; `none` hides all labels |
+| `--label-orientation` | `horizontal`, `auto` | `auto` is the default; it points labels away from the tree trunk in radial and vertical layouts |
+| `--label-offset` | `float` | Pushes labels farther from the tree |
+| `--font-size` | `int` | Controls label size |
 | `--hide-internal-nodes` | flag | Hides non-leaf node markers |
 | `--hide-root-node` | flag | Hides the root node marker |
-| `--colour-mode` | `global`, `palette` | Controls whether palette colouring is used |
+| `--colour-mode` | `global`, `palette` | `global` uses the explicit node, edge, and label colours; `palette` colors branches automatically |
 | `--palette` | preset name or hex colours | Used only when `--colour-mode palette` is active |
-| `--palette-depth` | `1`, `2`, ... | Used only when `--colour-mode palette` is active; chooses which tree level gets palette colouring |
+| `--palette-depth` | `int` | Used only when `--colour-mode palette` is active; chooses which tree level gets palette colouring |
 | `--show-palette-legend` | flag | Adds a small SVG legend when palette colouring is active |
 | `--show-svg-data-attributes` | flag | Adds `data-*` metadata to SVG nodes and edges for browser scripting |
 | `--show-svg-titles` | flag | Adds short hover titles to SVG nodes and edges |
@@ -250,13 +246,20 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | `--node-colour` | hex colour | Fallback node colour in global mode |
 | `--edge-colour` | hex colour | Fallback edge colour in global mode |
 | `--label-colour` | hex colour | Fallback label colour in global mode |
-| `--depth-spacing` | number | Adjusts the gap between tree levels |
-| `--sibling-spacing` | number | Adjusts the gap between siblings |
-| `--curve-points` | number | Controls curved path smoothness |
-| `--straight-points` | number | Controls how many points are used for straight paths |
-| `--radial-base-angle-deg` | number | Sets the starting angle for radial layouts |
-| `--radial-sweep-deg` | number | Sets the angular sweep for radial layouts |
-| `--scale` | number | Enlarges SVG geometry, strokes, nodes, and text without changing the tree structure |
+
+### Advanced
+
+These CLI flags map directly to `LayoutOptions` fields in the Python API.
+
+| Option | Values | Notes |
+| --- | --- | --- |
+| `--depth-spacing` | `float` | Adjusts the gap between tree levels |
+| `--sibling-spacing` | `float` | Adjusts the gap between siblings |
+| `--curve-points` | `int` | Controls curved path smoothness |
+| `--straight-points` | `int` | Controls how many points are used for straight paths |
+| `--radial-base-angle-deg` | `float` | Sets the starting angle for radial layouts |
+| `--radial-sweep-deg` | `float` | Sets the angular sweep for radial layouts |
+| `--scale` | `float` | Enlarges SVG geometry, strokes, nodes, and text without changing the tree structure |
 
 ## Colour Palettes
 
