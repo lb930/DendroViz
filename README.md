@@ -235,7 +235,7 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 | `--font-size` | `int` | Controls label size |
 | `--hide-internal-nodes` | flag | Hides non-leaf node markers |
 | `--hide-root-node` | flag | Hides the root node marker |
-| `--colour-mode` | `global`, `palette` | `global` uses the explicit node, edge, and label colours; `palette` colors branches automatically |
+| `--colour-mode` | `global`, `palette` | `global` uses the explicit node, edge, and label colours; `palette` colours branches automatically |
 | `--palette` | preset name or hex colours | Used only when `--colour-mode palette` is active |
 | `--palette-depth` | `int` | Used only when `--colour-mode palette` is active; chooses which tree level gets palette colouring |
 | `--show-palette-legend` | flag | Adds a small SVG legend when palette colouring is active |

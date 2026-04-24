@@ -2,7 +2,6 @@
 
 ## 0.1.4
 
-- Fixed SVG tooltip template typing and added configurable template-based hover text.
 - CSV and JSON loaders now accept in-memory text streams as well as file paths.
 - Vertical leaf labels now support auto placement below the node.
 - Removed the redundant `--show-labels` flag in favour of `--label-mode`.
