@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import pathlib
 import sys
 import types
 import unittest
@@ -117,56 +118,30 @@ class LoadTreeCsvTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             generator.load_tree_csv(path)
 
-    def test_loads_newick_tree_with_soft_dependency(self) -> None:
-        """Load a Newick tree through a mocked BioPython dependency."""
+    def test_loads_newick_tree_with_soft_dependency_from_path(self) -> None:
+        """Load a Newick tree through a mocked BioPython dependency using a path."""
         generator = DendrogramGenerator()
         _, path = write_text_file("(ignored);", filename="tree.nwk")
-        fake_tree = FakeTree(
-            FakeClade(
-                "Root",
-                [
-                    FakeClade("Child B"),
-                    FakeClade("Child A"),
-                ],
-            )
-        )
-        fake_phylo = types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
-        fake_bio = types.SimpleNamespace(Phylo=fake_phylo)
+        fake_phylo = self._create_fake_phylo()
+        fake_bio = self._create_fake_bio(fake_phylo)
 
         with mock.patch.dict(sys.modules, {"Bio": fake_bio}):
             tree = generator.load_tree(path, input_format="newick")
 
-        self.assertEqual(tree.root.label, "Root")
-        self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
-        fake_phylo.read.assert_called_once_with(str(path), "newick")
-    
-    def test_loads_newick_tree_with_soft_dependency(self) -> None:
+        self._assert_newick_tree_valid(tree, fake_phylo, path)
+
+    def test_loads_newick_tree_with_soft_dependency_from_stream(self) -> None:
         """Load a Newick tree through a mocked BioPython dependency using a stream."""
         generator = DendrogramGenerator()
-        newick_content = "(Child B, Child A)Root;"
-        stream = io.StringIO(newick_content)
-        
-        fake_tree = FakeTree(
-            FakeClade(
-                "Root",
-                [
-                    FakeClade("Child B"),
-                    FakeClade("Child A"),
-                ],
-            )
-        )
-        fake_phylo = types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
-        fake_bio = types.SimpleNamespace(Phylo=fake_phylo)
-        
+        stream = io.StringIO("(ignored);")
+        fake_phylo = self._create_fake_phylo()
+        fake_bio = self._create_fake_bio(fake_phylo)
+
         with mock.patch.dict(sys.modules, {"Bio": fake_bio}):
             tree = generator.load_tree(stream, input_format="newick")
-            
-        self.assertEqual(tree.root.label, "Root")
-        self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
-        
-        # Verify that the stream object itself was passed to Phylo.read
-        fake_phylo.read.assert_called_once_with(stream, "newick")
-    
+
+        self._assert_newick_tree_valid(tree, fake_phylo, stream)
+
     def test_loads_json_tree(self) -> None:
         """Load a JSON tree in the same row schema as CSV."""
         generator = DendrogramGenerator()
@@ -205,3 +180,31 @@ class LoadTreeCsvTests(unittest.TestCase):
         with mock.patch("builtins.__import__", side_effect=raising_import):
             with self.assertRaises(ImportError):
                 generator.load_tree(path, input_format="newick")
+
+    def _create_fake_phylo(self) -> types.SimpleNamespace:
+        """Create a fake Bio.Phylo module."""
+        fake_tree = FakeTree(
+            FakeClade(
+                "Root",
+                [
+                    FakeClade("Child B"),
+                    FakeClade("Child A"),
+                ],
+            )
+        )
+        return types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
+
+    def _create_fake_bio(self, phylo: types.SimpleNamespace) -> types.SimpleNamespace:
+        """Create a fake Bio module containing Phylo."""
+        return types.SimpleNamespace(Phylo=phylo)
+
+    def _assert_newick_tree_valid(
+        self,
+        tree: types.SimpleNamespace,
+        fake_phylo: types.SimpleNamespace,
+        expected_source: str | pathlib.Path | io.TextIOBase,
+    ) -> None:
+        """Helper to run common assertions for Newick tree loading."""
+        self.assertEqual(tree.root.label, "Root")
+        self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
+        fake_phylo.read.assert_called_once_with(expected_source, "newick")
