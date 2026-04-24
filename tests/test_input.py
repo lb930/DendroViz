@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import sys
 import types
 import unittest
@@ -138,7 +139,34 @@ class LoadTreeCsvTests(unittest.TestCase):
         self.assertEqual(tree.root.label, "Root")
         self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
         fake_phylo.read.assert_called_once_with(str(path), "newick")
-
+    
+    def test_loads_newick_tree_with_soft_dependency(self) -> None:
+        """Load a Newick tree through a mocked BioPython dependency using a stream."""
+        generator = DendrogramGenerator()
+        newick_content = "(Child B, Child A)Root;"
+        stream = io.StringIO(newick_content)
+        
+        fake_tree = FakeTree(
+            FakeClade(
+                "Root",
+                [
+                    FakeClade("Child B"),
+                    FakeClade("Child A"),
+                ],
+            )
+        )
+        fake_phylo = types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
+        fake_bio = types.SimpleNamespace(Phylo=fake_phylo)
+        
+        with mock.patch.dict(sys.modules, {"Bio": fake_bio}):
+            tree = generator.load_tree(stream, input_format="newick")
+            
+        self.assertEqual(tree.root.label, "Root")
+        self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
+        
+        # Verify that the stream object itself was passed to Phylo.read
+        fake_phylo.read.assert_called_once_with(stream, "newick")
+    
     def test_loads_json_tree(self) -> None:
         """Load a JSON tree in the same row schema as CSV."""
         generator = DendrogramGenerator()
