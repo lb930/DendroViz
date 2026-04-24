@@ -1,24 +1,21 @@
 # Changelog
 
-## 0.1.4
+## 0.1.5
 
 - CSV and JSON loaders now accept in-memory text streams as well as file paths.
 - Vertical leaf labels now support auto placement below the node.
-- Removed the redundant `--show-labels` flag in favour of `--label-mode`.
-- Moved low-level layout tuning flags into an advanced section and clarified their numeric types.
 
 ## 0.1.3
 
-- Fixed PNG resolution.
-- Added a separate PyPI README.
+- Added group metadata to SVG tooltips.
 
 ## 0.1.2
 
-- Added the example PNG assets.
+- Relaxed README parity normalisation.
 
 ## 0.1.1
 
-- PyPI image/packaging fix.
+- Fixed PyPI image rendering and packaging.
 
 ## 0.1.0
 
