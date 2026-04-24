@@ -39,9 +39,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Set the logging verbosity for the command.",
     )
     build_parser.add_argument(
-        "--show-labels", action="store_true", help="Show labels in SVG output."
+        "--label-mode",
+        choices=["all", "leaves", "none"],
+        default="all",
+        help="Choose which labels to render: all, leaves only, or none.",
     )
-    build_parser.add_argument("--label-mode", choices=["all", "leaves", "none"], default="all")
     build_parser.add_argument(
         "--hide-internal-nodes",
         action="store_true",
@@ -51,10 +53,30 @@ def build_parser() -> argparse.ArgumentParser:
         "--hide-root-node", action="store_true", help="Hide the root node marker in SVG output."
     )
     build_parser.add_argument("--label-orientation", choices=["horizontal", "auto"], default="auto")
-    build_parser.add_argument("--label-offset", type=float, default=18.0)
-    build_parser.add_argument("--scale", type=float, default=1.0, help="Scale the SVG output size.")
-    build_parser.add_argument("--font-size", type=int, default=12)
-    build_parser.add_argument("--colour-mode", choices=["global", "palette"], default="global")
+    build_parser.add_argument(
+        "--label-offset",
+        type=float,
+        default=18.0,
+        help="Floating-point gap between a label and its node.",
+    )
+    build_parser.add_argument(
+        "--scale",
+        type=float,
+        default=1.0,
+        help="Floating-point multiplier for SVG geometry and text.",
+    )
+    build_parser.add_argument(
+        "--font-size",
+        type=int,
+        default=12,
+        help="Integer font size for labels.",
+    )
+    build_parser.add_argument(
+        "--colour-mode",
+        choices=["global", "palette"],
+        default="global",
+        help="Global uses explicit colours; palette colours branches automatically.",
+    )
     build_parser.add_argument(
         "--palette",
         default="set1",
@@ -64,7 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--palette-depth",
         type=int,
         default=1,
-        help="Tree depth to colour when palette mode is enabled.",
+        help="Integer tree depth to colour when palette mode is enabled.",
     )
     build_parser.add_argument(
         "--show-palette-legend",
@@ -93,12 +115,42 @@ def build_parser() -> argparse.ArgumentParser:
     build_parser.add_argument("--node-colour", default="#0f172a")
     build_parser.add_argument("--edge-colour", default="#334155")
     build_parser.add_argument("--label-colour", default="#111827")
-    build_parser.add_argument("--depth-spacing", type=float, default=160.0)
-    build_parser.add_argument("--sibling-spacing", type=float, default=90.0)
-    build_parser.add_argument("--curve-points", type=int, default=60)
-    build_parser.add_argument("--straight-points", type=int, default=24)
-    build_parser.add_argument("--radial-base-angle-deg", type=float, default=-90.0)
-    build_parser.add_argument("--radial-sweep-deg", type=float, default=360.0)
+    build_parser.add_argument(
+        "--depth-spacing",
+        type=float,
+        default=160.0,
+        help="Floating-point spacing between tree levels.",
+    )
+    build_parser.add_argument(
+        "--sibling-spacing",
+        type=float,
+        default=90.0,
+        help="Floating-point spacing between sibling branches.",
+    )
+    build_parser.add_argument(
+        "--curve-points",
+        type=int,
+        default=60,
+        help="Integer point count for curved path smoothing.",
+    )
+    build_parser.add_argument(
+        "--straight-points",
+        type=int,
+        default=24,
+        help="Integer point count for straight paths.",
+    )
+    build_parser.add_argument(
+        "--radial-base-angle-deg",
+        type=float,
+        default=-90.0,
+        help="Floating-point starting angle for radial layouts.",
+    )
+    build_parser.add_argument(
+        "--radial-sweep-deg",
+        type=float,
+        default=360.0,
+        help="Floating-point angular sweep for radial layouts.",
+    )
     return parser
 
 
@@ -122,9 +174,7 @@ def main(argv: list[str] | None = None) -> int:
         )
 
     svg_title_parts = tuple(
-        part.strip().lower()
-        for part in str(args.svg_title_parts).split(",")
-        if part.strip()
+        part.strip().lower() for part in str(args.svg_title_parts).split(",") if part.strip()
     )
     if not svg_title_parts:
         parser.error("--svg-title-parts must include at least one part.")
@@ -132,10 +182,7 @@ def main(argv: list[str] | None = None) -> int:
     svg_title_template = args.svg_title_template
     if svg_title_template is not None:
         svg_title_template = (
-            str(svg_title_template)
-            .replace("\\n", "\n")
-            .replace("\\t", "\t")
-            .replace("\\r", "\r")
+            str(svg_title_template).replace("\\n", "\n").replace("\\t", "\t").replace("\\r", "\r")
         )
 
     logger.info(
@@ -181,7 +228,6 @@ def main(argv: list[str] | None = None) -> int:
             output_csv=args.output_csv,
             output_json=args.output_json,
             output_svg=args.output_svg,
-            show_labels=args.show_labels,
             options=options,
         )
     except (DendrogramError, ImportError) as exc:
