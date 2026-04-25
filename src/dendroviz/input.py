@@ -63,14 +63,8 @@ class TreeCsvLoader:
         logger.info("Loaded %d CSV rows from %s", len(nodes), source_name)
         return nodes
 
-    def _load_newick_rows(self, path: str | Path | TextIOBase) -> list[InputNode]:
-        """Load and normalise rows from a Newick file."""
-        if isinstance(path, TextIOBase):
-            raise ValidationError("Newick input must be provided as a filesystem path.")
-        newick_path = Path(path)
-        if not newick_path.exists():
-            raise ValidationError(f"Input Newick file does not exist: {newick_path}")
-
+    def _load_newick_rows(self, source: str | Path | TextIOBase) -> list[InputNode]:
+        """Load and normalise rows from a Newick file or text stream."""
         try:
             from Bio import Phylo
         except ImportError as exc:
@@ -78,11 +72,18 @@ class TreeCsvLoader:
                 "Newick support requires BioPython. Install it with: pip install biopython"
             ) from exc
 
+        if isinstance(source, TextIOBase):
+            source_name: object = getattr(source, "name", source)
+        else:
+            newick_path = Path(source)
+            if not newick_path.exists():
+                raise ValidationError(f"Input Newick file does not exist: {newick_path}")
+            source_name = newick_path
+
         try:
-            phylo_module: Any = Phylo
-            phylogeny = phylo_module.read(str(newick_path), "newick")
+            phylogeny = Phylo.read(source, "newick")
         except Exception as exc:
-            raise ValidationError(f"Unable to parse Newick input: {newick_path}") from exc
+            raise ValidationError(f"Unable to parse Newick input: {source_name}") from exc
 
         root = getattr(phylogeny, "root", None)
         if root is None:
@@ -133,7 +134,7 @@ class TreeCsvLoader:
 
         visit(root, None, 0)
         self._validate_rows(nodes)
-        logger.info("Loaded %d Newick rows from %s", len(nodes), newick_path)
+        logger.info("Loaded %d Newick rows from %s", len(nodes), source_name)
         return nodes
 
     def _load_json_rows(self, source: str | Path | TextIOBase) -> list[InputNode]:
