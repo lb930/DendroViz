@@ -27,7 +27,7 @@ class TreeLayouter:
         self._assign_leaf_positions(tree)
         for node in tree.nodes:
             node.x = node.leaf_index * self.options.sibling_spacing
-            node.y = node.depth * self.options.depth_spacing
+            node.y = self._distance_to_axis(node)
             node.angle = None
             node.radius = None
         return tree.nodes
@@ -36,7 +36,7 @@ class TreeLayouter:
         """Assign horizontal layout coordinates."""
         self._assign_leaf_positions(tree)
         for node in tree.nodes:
-            node.x = node.depth * self.options.depth_spacing
+            node.x = self._distance_to_axis(node)
             node.y = node.leaf_index * self.options.sibling_spacing
             node.angle = None
             node.radius = None
@@ -56,13 +56,19 @@ class TreeLayouter:
         self._assign_internal_angles(tree.root)
 
         for node in tree.nodes:
-            radius = node.depth * self.options.depth_spacing
+            radius = self._distance_to_axis(node)
             angle = node.angle if node.angle is not None else 0.0
             node.radius = radius
             node.x = radius * math.cos(angle)
             node.y = radius * math.sin(angle)
         logger.debug("Assigned radial coordinates to %d nodes", len(tree.nodes))
         return tree.nodes
+
+    def _distance_to_axis(self, node: TreeNode) -> float:
+        """Convert a node's tree distance into layout coordinates."""
+        if node.distance is not None:
+            return node.distance * self.options.branch_length_spacing
+        return node.depth * self.options.depth_spacing
 
     def _assign_leaf_positions(self, tree: TreeModel) -> None:
         """Assign leaf indices before propagating them upward."""

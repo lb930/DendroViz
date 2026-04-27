@@ -31,6 +31,7 @@ class InputNode:
     parent_id: str | None
     label: str
     order: float
+    distance: float | None = None
 
 
 @dataclass(slots=True)
@@ -40,6 +41,7 @@ class TreeNode:
     label: str
     order: float
     depth: int = 0
+    distance: float | None = None
     children: list["TreeNode"] = field(default_factory=list)
     x: float = 0.0
     y: float = 0.0
@@ -129,11 +131,10 @@ class EdgePath:
 @dataclass(slots=True)
 class LayoutOptions:
     depth_spacing: float = 160.0
+    branch_length_spacing: float = 160.0
     sibling_spacing: float = 90.0
     radial_base_angle_deg: float = -90.0
     radial_sweep_deg: float = 360.0
-    curve_points: int = 60
-    straight_points: int = 24
     node_radius: float = 6.0
     margin: float = 32.0
     svg_scale: float = 1.0
@@ -152,9 +153,9 @@ class LayoutOptions:
     show_svg_titles: bool = False
     svg_title_parts: tuple[str, ...] = ("label",)
     svg_title_template: str | None = None
-    edge_colour: str = "#334155"
-    node_colour: str = "#0f172a"
-    label_colour: str = "#111827"
+    edge_colour: str = "#64748b"
+    node_colour: str = "#475569"
+    label_colour: str = "#334155"
 
 
 @dataclass(slots=True)

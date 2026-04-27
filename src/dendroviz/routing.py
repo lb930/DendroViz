@@ -6,6 +6,8 @@ import math
 from .models import EdgePath, LayoutOptions, LineStyle, TreeLayout, TreeModel, TreeNode
 
 logger = logging.getLogger(__name__)
+CURVE_POINTS = 60
+STRAIGHT_POINTS = 24
 
 
 class EdgeRouter:
@@ -43,9 +45,7 @@ class EdgeRouter:
     ) -> list[tuple[float, float]]:
         """Route one edge using the requested line style."""
         if line_style == "straight":
-            return self._interpolate_line(
-                parent.position, child.position, self.options.straight_points
-            )
+            return self._interpolate_line(parent.position, child.position, STRAIGHT_POINTS)
         if line_style == "split":
             return self._route_split(parent, child, tree_layout)
         return self._route_curved(parent, child, tree_layout)
@@ -64,33 +64,33 @@ class EdgeRouter:
             radial_leg = self._interpolate_line(
                 self._polar_to_xy(parent_angle, parent_radius),
                 self._polar_to_xy(parent_angle, split_radius),
-                self.options.straight_points,
+                STRAIGHT_POINTS,
             )
             arc_leg = self._sample_arc(
                 radius=split_radius,
                 start_angle=parent_angle,
                 end_angle=child_angle,
-                samples=self.options.curve_points,
+                samples=CURVE_POINTS,
             )
             if child.children:
                 return self._merge_segments([radial_leg, arc_leg])
             leaf_leg = self._interpolate_line(
                 self._polar_to_xy(child_angle, split_radius),
                 self._polar_to_xy(child_angle, child_radius),
-                self.options.straight_points,
+                STRAIGHT_POINTS,
             )
             return self._merge_segments([radial_leg, arc_leg, leaf_leg])
 
         if tree_layout == "vertical":
             if parent.parent_id is None:
-                branch_y = parent.y + (self.options.depth_spacing * self.options.root_fork_fraction)
+                branch_y = parent.y + ((child.y - parent.y) * self.options.root_fork_fraction)
                 split_points = [
                     parent.position,
                     (parent.x, branch_y),
                     (child.x, branch_y),
                     child.position,
                 ]
-                return self._densify_polyline(split_points, self.options.straight_points)
+                return self._densify_polyline(split_points, STRAIGHT_POINTS)
             split_points = [
                 parent.position,
                 (child.x, parent.y),
@@ -98,20 +98,20 @@ class EdgeRouter:
             ]
         else:
             if parent.parent_id is None:
-                branch_x = parent.x + (self.options.depth_spacing * self.options.root_fork_fraction)
+                branch_x = parent.x + ((child.x - parent.x) * self.options.root_fork_fraction)
                 split_points = [
                     parent.position,
                     (branch_x, parent.y),
                     (branch_x, child.y),
                     child.position,
                 ]
-                return self._densify_polyline(split_points, self.options.straight_points)
+                return self._densify_polyline(split_points, STRAIGHT_POINTS)
             split_points = [
                 parent.position,
                 (parent.x, child.y),
                 child.position,
             ]
-        return self._densify_polyline(split_points, self.options.straight_points)
+        return self._densify_polyline(split_points, STRAIGHT_POINTS)
 
     def _route_curved(
         self,
@@ -133,7 +133,7 @@ class EdgeRouter:
             else:
                 p1 = self._polar_to_xy(parent_angle, mid_radius)
                 p2 = self._polar_to_xy(child_angle, mid_radius)
-            return self._sample_cubic_bezier(p0, p1, p2, p3, self.options.curve_points)
+            return self._sample_cubic_bezier(p0, p1, p2, p3, CURVE_POINTS)
 
         midpoint = (
             (parent.y + child.y) / 2.0 if tree_layout == "vertical" else (parent.x + child.x) / 2.0
@@ -146,7 +146,7 @@ class EdgeRouter:
         else:
             p1 = (midpoint, parent.y)
             p2 = (midpoint, child.y)
-        return self._sample_cubic_bezier(p0, p1, p2, p3, self.options.curve_points)
+        return self._sample_cubic_bezier(p0, p1, p2, p3, CURVE_POINTS)
 
     def _sample_cubic_bezier(
         self,

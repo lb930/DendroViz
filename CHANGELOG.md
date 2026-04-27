@@ -4,6 +4,7 @@
 
 - CSV and JSON loaders now accept in-memory text streams as well as file paths.
 - Vertical leaf labels now support auto placement below the node.
+- Newick branch lengths are now used directly, with depth-based spacing as the fallback.
 
 ## 0.1.3
 

@@ -112,9 +112,9 @@ def build_parser() -> argparse.ArgumentParser:
         "--svg-title-template",
         help="Tooltip template for SVG nodes, for example 'Family: {group}\\nLanguage: {label}'.",
     )
-    build_parser.add_argument("--node-colour", default="#0f172a")
-    build_parser.add_argument("--edge-colour", default="#334155")
-    build_parser.add_argument("--label-colour", default="#111827")
+    build_parser.add_argument("--node-colour", default="#475569")
+    build_parser.add_argument("--edge-colour", default="#64748b")
+    build_parser.add_argument("--label-colour", default="#334155")
     build_parser.add_argument(
         "--depth-spacing",
         type=float,
@@ -122,22 +122,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Floating-point spacing between tree levels.",
     )
     build_parser.add_argument(
+        "--branch-length-spacing",
+        type=float,
+        default=160.0,
+        help="Floating-point scale applied to Newick branch lengths.",
+    )
+    build_parser.add_argument(
         "--sibling-spacing",
         type=float,
         default=90.0,
         help="Floating-point spacing between sibling branches.",
-    )
-    build_parser.add_argument(
-        "--curve-points",
-        type=int,
-        default=60,
-        help="Integer point count for curved path smoothing.",
-    )
-    build_parser.add_argument(
-        "--straight-points",
-        type=int,
-        default=24,
-        help="Integer point count for straight paths.",
     )
     build_parser.add_argument(
         "--radial-base-angle-deg",
@@ -194,9 +188,8 @@ def main(argv: list[str] | None = None) -> int:
     )
     options = LayoutOptions(
         depth_spacing=args.depth_spacing,
+        branch_length_spacing=args.branch_length_spacing,
         sibling_spacing=args.sibling_spacing,
-        curve_points=args.curve_points,
-        straight_points=args.straight_points,
         radial_base_angle_deg=args.radial_base_angle_deg,
         radial_sweep_deg=args.radial_sweep_deg,
         show_internal_nodes=not args.hide_internal_nodes,
