@@ -283,154 +283,52 @@ Custom palettes are also supported:
   </tr>
   <tr>
     <td><code>set1</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#e41a1c;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#377eb8;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#4daf4a;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#984ea3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ff7f00;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffff33;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#a65628;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#f781bf;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#999999;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-set1.png" alt="set1 swatches" width="180"></td>
     <td><code>#e41a1c #377eb8 #4daf4a #984ea3 #ff7f00 #ffff33 #a65628 #f781bf #999999</code></td>
   </tr>
   <tr>
     <td><code>set2</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#66c2a5;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fc8d62;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#8da0cb;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e78ac3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#a6d854;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffd92f;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e5c494;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#b3b3b3;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-set2.png" alt="set2 swatches" width="180"></td>
     <td><code>#66c2a5 #fc8d62 #8da0cb #e78ac3 #a6d854 #ffd92f #e5c494 #b3b3b3</code></td>
   </tr>
   <tr>
     <td><code>set3</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#8dd3c7;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffffb3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#bebada;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fb8072;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#80b1d3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fdb462;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#b3de69;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fccde5;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#d9d9d9;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#bc80bd;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ccebc5;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffed6f;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-set3.png" alt="set3 swatches" width="180"></td>
     <td><code>#8dd3c7 #ffffb3 #bebada #fb8072 #80b1d3 #fdb462 #b3de69 #fccde5 #d9d9d9 #bc80bd #ccebc5 #ffed6f</code></td>
   </tr>
   <tr>
     <td><code>pastel1</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#fbb4ae;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#b3cde3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ccebc5;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#decbe4;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fed9a6;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffffcc;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e5d8bd;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fddaec;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#f2f2f2;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-pastel1.png" alt="pastel1 swatches" width="180"></td>
     <td><code>#fbb4ae #b3cde3 #ccebc5 #decbe4 #fed9a6 #ffffcc #e5d8bd #fddaec #f2f2f2</code></td>
   </tr>
   <tr>
     <td><code>pastel2</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#b3e2cd;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fdcdac;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#cbd5e8;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#f4cae4;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e6f5c9;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fff2ae;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#f1e2cc;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#cccccc;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-pastel2.png" alt="pastel2 swatches" width="180"></td>
     <td><code>#b3e2cd #fdcdac #cbd5e8 #f4cae4 #e6f5c9 #fff2ae #f1e2cc #cccccc</code></td>
   </tr>
   <tr>
     <td><code>accent</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#7fc97f;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#beaed4;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fdc086;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffff99;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#386cb0;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#f0027f;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#bf5b17;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#666666;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-accent.png" alt="accent swatches" width="180"></td>
     <td><code>#7fc97f #beaed4 #fdc086 #ffff99 #386cb0 #f0027f #bf5b17 #666666</code></td>
   </tr>
   <tr>
     <td><code>paired</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#a6cee3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#1f78b4;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#b2df8a;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#33a02c;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fb9a99;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e31a1c;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#fdbf6f;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ff7f00;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#cab2d6;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#6a3d9a;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ffff99;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#b15928;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-paired.png" alt="paired swatches" width="180"></td>
     <td><code>#a6cee3 #1f78b4 #b2df8a #33a02c #fb9a99 #e31a1c #fdbf6f #ff7f00 #cab2d6 #6a3d9a #ffff99 #b15928</code></td>
   </tr>
   <tr>
     <td><code>tableau</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#1f77b4;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#ff7f0e;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#2ca02c;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#d62728;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#9467bd;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#8c564b;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e377c2;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#7f7f7f;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#bcbd22;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#17becf;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-tableau.png" alt="tableau swatches" width="180"></td>
     <td><code>#1f77b4 #ff7f0e #2ca02c #d62728 #9467bd #8c564b #e377c2 #7f7f7f #bcbd22 #17becf</code></td>
   </tr>
   <tr>
     <td><code>dark2</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#1b9e77;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#d95f02;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#7570b3;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e7298a;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#66a61e;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#e6ab02;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#a6761d;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#666666;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-dark2.png" alt="dark2 swatches" width="180"></td>
     <td><code>#1b9e77 #d95f02 #7570b3 #e7298a #66a61e #e6ab02 #a6761d #666666</code></td>
   </tr>
   <tr>
     <td><code>scientific</code></td>
-    <td>
-      <span style="display:inline-block;width:1em;height:1em;background:#e69f00;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#56b4e9;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#009e73;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#f0e442;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#0072b2;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#d55e00;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#cc79a7;border:1px solid #999;"></span>
-      <span style="display:inline-block;width:1em;height:1em;background:#000000;border:1px solid #999;"></span>
-    </td>
+    <td><img src="assets/palette-scientific.png" alt="scientific swatches" width="180"></td>
     <td><code>#e69f00 #56b4e9 #009e73 #f0e442 #0072b2 #d55e00 #cc79a7 #000000</code></td>
   </tr>
 </table>
