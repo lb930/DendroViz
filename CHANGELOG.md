@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6
+
+- README palette swatches now render on GitHub via committed PNG assets.
+
 ## 0.1.5
 
 - CSV and JSON loaders now accept in-memory text streams as well as file paths.
