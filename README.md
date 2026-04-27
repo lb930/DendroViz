@@ -282,52 +282,52 @@ Custom palettes are also supported:
   </tr>
   <tr>
     <td><code>set1</code></td>
-    <td><img src="assets/palette-set1.png" alt="set1 swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-set1.png" alt="set1 swatches" width="180"></td>
     <td><code>#e41a1c #377eb8 #4daf4a #984ea3 #ff7f00 #ffff33 #a65628 #f781bf #999999</code></td>
   </tr>
   <tr>
     <td><code>set2</code></td>
-    <td><img src="assets/palette-set2.png" alt="set2 swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-set2.png" alt="set2 swatches" width="180"></td>
     <td><code>#66c2a5 #fc8d62 #8da0cb #e78ac3 #a6d854 #ffd92f #e5c494 #b3b3b3</code></td>
   </tr>
   <tr>
     <td><code>set3</code></td>
-    <td><img src="assets/palette-set3.png" alt="set3 swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-set3.png" alt="set3 swatches" width="180"></td>
     <td><code>#8dd3c7 #ffffb3 #bebada #fb8072 #80b1d3 #fdb462 #b3de69 #fccde5 #d9d9d9 #bc80bd #ccebc5 #ffed6f</code></td>
   </tr>
   <tr>
     <td><code>pastel1</code></td>
-    <td><img src="assets/palette-pastel1.png" alt="pastel1 swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-pastel1.png" alt="pastel1 swatches" width="180"></td>
     <td><code>#fbb4ae #b3cde3 #ccebc5 #decbe4 #fed9a6 #ffffcc #e5d8bd #fddaec #f2f2f2</code></td>
   </tr>
   <tr>
     <td><code>pastel2</code></td>
-    <td><img src="assets/palette-pastel2.png" alt="pastel2 swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-pastel2.png" alt="pastel2 swatches" width="180"></td>
     <td><code>#b3e2cd #fdcdac #cbd5e8 #f4cae4 #e6f5c9 #fff2ae #f1e2cc #cccccc</code></td>
   </tr>
   <tr>
     <td><code>accent</code></td>
-    <td><img src="assets/palette-accent.png" alt="accent swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-accent.png" alt="accent swatches" width="180"></td>
     <td><code>#7fc97f #beaed4 #fdc086 #ffff99 #386cb0 #f0027f #bf5b17 #666666</code></td>
   </tr>
   <tr>
     <td><code>paired</code></td>
-    <td><img src="assets/palette-paired.png" alt="paired swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-paired.png" alt="paired swatches" width="180"></td>
     <td><code>#a6cee3 #1f78b4 #b2df8a #33a02c #fb9a99 #e31a1c #fdbf6f #ff7f00 #cab2d6 #6a3d9a #ffff99 #b15928</code></td>
   </tr>
   <tr>
     <td><code>tableau</code></td>
-    <td><img src="assets/palette-tableau.png" alt="tableau swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-tableau.png" alt="tableau swatches" width="180"></td>
     <td><code>#1f77b4 #ff7f0e #2ca02c #d62728 #9467bd #8c564b #e377c2 #7f7f7f #bcbd22 #17becf</code></td>
   </tr>
   <tr>
     <td><code>dark2</code></td>
-    <td><img src="assets/palette-dark2.png" alt="dark2 swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-dark2.png" alt="dark2 swatches" width="180"></td>
     <td><code>#1b9e77 #d95f02 #7570b3 #e7298a #66a61e #e6ab02 #a6761d #666666</code></td>
   </tr>
   <tr>
     <td><code>scientific</code></td>
-    <td><img src="assets/palette-scientific.png" alt="scientific swatches" width="180"></td>
+    <td><img src="https://raw.githubusercontent.com/lb930/DendroViz/main/assets/palette-scientific.png" alt="scientific swatches" width="180"></td>
     <td><code>#e69f00 #56b4e9 #009e73 #f0e442 #0072b2 #d55e00 #cc79a7 #000000</code></td>
   </tr>
 </table>
