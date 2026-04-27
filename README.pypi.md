@@ -27,8 +27,8 @@
 - [Installation](#installation)
 - [Quickstart](#quickstart)
 - [Input Format](#input-format)
-- [Colour Palettes](#colour-palettes)
 - [CLI Reference](#cli-reference)
+- [Colour Palettes](#colour-palettes)
 - [Contributing](#contributing)
 
 ## Installation
