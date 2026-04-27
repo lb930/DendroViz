@@ -13,10 +13,16 @@ from tests.helpers import write_csv_dict_file, write_json_file, write_text_file
 
 
 class FakeClade:
-    def __init__(self, name: str | None = None, clades: list["FakeClade"] | None = None) -> None:
+    def __init__(
+        self,
+        name: str | None = None,
+        clades: list["FakeClade"] | None = None,
+        branch_length: float | None = None,
+    ) -> None:
         """Create a lightweight fake clade for Newick tests."""
         self.name = name
         self.clades = clades or []
+        self.branch_length = branch_length
 
 
 class FakeTree:
@@ -198,6 +204,35 @@ class LoadTreeNewickTests(unittest.TestCase):
         self.assertEqual(tree.root.label, "Root")
         self.assertEqual([node.label for node in tree.nodes], ["Root", "Child B", "Child A"])
         fake_phylo.read.assert_called_once_with(path, "newick")
+
+    def test_loads_newick_branch_lengths(self) -> None:
+        """Preserve Newick branch lengths as cumulative distances."""
+        generator = DendrogramGenerator()
+        _, path = write_text_file("(Child B:2,(Grandchild:3)Child A:4)Root;", filename="tree.nwk")
+        fake_tree = FakeTree(
+            FakeClade(
+                "Root",
+                [
+                    FakeClade("Child B", branch_length=2.0),
+                    FakeClade(
+                        "Child A",
+                        [FakeClade("Grandchild", branch_length=3.0)],
+                        branch_length=4.0,
+                    ),
+                ],
+            )
+        )
+        fake_phylo = types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
+        fake_bio = types.SimpleNamespace(Phylo=fake_phylo)
+
+        with mock.patch.dict(sys.modules, {"Bio": fake_bio}):
+            tree = generator.load_tree(path, input_format="newick")
+
+        distances = {node.label: node.distance for node in tree.nodes}
+        self.assertEqual(distances["Root"], 0.0)
+        self.assertEqual(distances["Child B"], 2.0)
+        self.assertEqual(distances["Child A"], 4.0)
+        self.assertEqual(distances["Grandchild"], 7.0)
 
     def test_loads_newick_tree_from_stream(self) -> None:
         """Load a Newick tree from an in-memory text stream."""

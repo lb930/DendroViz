@@ -13,7 +13,7 @@ from .errors import ValidationError
 from .models import EdgePath, LayoutOptions, RenderResult, TreeNode
 
 logger = logging.getLogger(__name__)
-PALETTE_FALLBACK_COLOUR = "#64748b"
+PALETTE_FALLBACK_COLOUR = "#94a3b8"
 
 
 class _CaseInsensitiveFormatter(string.Formatter):
@@ -432,11 +432,10 @@ class JsonExporter:
         """Serialize layout options to a JSON object."""
         return {
             "depth_spacing": options.depth_spacing,
+            "branch_length_spacing": options.branch_length_spacing,
             "sibling_spacing": options.sibling_spacing,
             "radial_base_angle_deg": options.radial_base_angle_deg,
             "radial_sweep_deg": options.radial_sweep_deg,
-            "curve_points": options.curve_points,
-            "straight_points": options.straight_points,
             "node_radius": options.node_radius,
             "margin": options.margin,
             "svg_scale": options.svg_scale,

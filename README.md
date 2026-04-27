@@ -127,6 +127,7 @@ dendroviz build examples/dummy_deep.csv \
   --line-style split \
   --output-csv build/dummy-deep-radial-split.csv \
   --output-svg build/dummy-deep-radial-split.svg \
+  --label-mode leaves \
   --label-orientation auto \
   --colour-mode palette \
   --palette set2 \
@@ -209,6 +210,7 @@ tree = generator.load_tree("examples/tree.nwk", input_format="newick")
 ```
 
 Sibling order is taken from the order children appear in the Newick file.
+Branch lengths are used directly when present, and `branch_length_spacing` controls how much screen space each unit of branch length gets so length-based trees remain readable. If a Newick tree omits branch lengths, the library falls back to its depth-based spacing. In Newick, `:1` means the branch has length `1`.
 
 ## CLI Reference
 
@@ -253,10 +255,9 @@ These CLI flags map directly to `LayoutOptions` fields in the Python API.
 
 | Option | Values | Notes |
 | --- | --- | --- |
-| `--depth-spacing` | `float` | Adjusts the gap between tree levels |
+| `--depth-spacing` | `float` | Adjusts the gap between tree levels when the tree has no usable branch lengths |
+| `--branch-length-spacing` | `float` | Scales Newick branch lengths into screen space when branch lengths are present |
 | `--sibling-spacing` | `float` | Adjusts the gap between siblings |
-| `--curve-points` | `int` | Controls curved path smoothness |
-| `--straight-points` | `int` | Controls how many points are used for straight paths |
 | `--radial-base-angle-deg` | `float` | Sets the starting angle for radial layouts |
 | `--radial-sweep-deg` | `float` | Sets the angular sweep for radial layouts |
 | `--scale` | `float` | Enlarges SVG geometry, strokes, nodes, and text without changing the tree structure |

@@ -116,7 +116,12 @@ class TreeCsvLoader:
             generated_ids.add(candidate)
             return candidate
 
-        def visit(clade: Any, parent_id: str | None, order: int) -> None:
+        def visit(
+            clade: Any,
+            parent_id: str | None,
+            order: int,
+            current_distance: float | None,
+        ) -> None:
             """Traverse a Newick clade tree and collect input nodes."""
             label = str(getattr(clade, "name", "") or "")
             node_id = build_node_id(label)
@@ -126,13 +131,19 @@ class TreeCsvLoader:
                     parent_id=parent_id,
                     label=label,
                     order=float(order),
+                    distance=current_distance,
                 )
             )
 
             for child_order, child in enumerate(getattr(clade, "clades", [])):
-                visit(child, node_id, child_order)
+                branch_length = getattr(child, "branch_length", None)
+                if current_distance is None or branch_length is None:
+                    child_distance = None
+                else:
+                    child_distance = current_distance + float(branch_length)
+                visit(child, node_id, child_order, child_distance)
 
-        visit(root, None, 0)
+        visit(root, None, 0, 0.0)
         self._validate_rows(nodes)
         logger.info("Loaded %d Newick rows from %s", len(nodes), source_name)
         return nodes
@@ -188,6 +199,7 @@ class TreeCsvLoader:
                 parent_id=node.parent_id,
                 label=node.label,
                 order=node.order,
+                distance=node.distance,
             )
             for node in nodes
         }
@@ -236,6 +248,7 @@ class TreeCsvLoader:
             parent_id=parent_raw or None,
             label=label,
             order=order,
+            distance=None,
         )
 
     def _extract_json_rows(self, payload: Any) -> list[Any]:

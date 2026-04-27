@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import sys
+import types
 import unittest
 from pathlib import Path
+from unittest import mock
 
 from dendroviz import DendrogramGenerator, LayoutOptions
 from dendroviz.models import LineStyle, TreeLayout
-from tests.helpers import write_csv_file
+from tests.helpers import write_csv_file, write_text_file
 
 
 def write_sample_tree() -> Path:
@@ -21,6 +24,23 @@ def write_sample_tree() -> Path:
         ],
         headers=["id", "parent", "label", "order"],
     )[1]
+
+
+class FakeClade:
+    def __init__(
+        self,
+        name: str | None = None,
+        clades: list["FakeClade"] | None = None,
+        branch_length: float | None = None,
+    ) -> None:
+        self.name = name
+        self.clades = clades or []
+        self.branch_length = branch_length
+
+
+class FakeTree:
+    def __init__(self, root: FakeClade) -> None:
+        self.root = root
 
 
 class GenerationTests(unittest.TestCase):
@@ -86,6 +106,72 @@ class GenerationTests(unittest.TestCase):
             [(node.x, node.y) for node in default_result.nodes],
             [(node.x, node.y) for node in custom_result.nodes],
         )
+
+    def test_newick_branch_lengths_control_layout_distance(self) -> None:
+        """Verify Newick branch lengths drive layout spacing when provided."""
+        generator = DendrogramGenerator()
+        _, path = write_text_file("(Short:1,(Deep:3)Long:4)Root;", filename="tree.nwk")
+        fake_tree = FakeTree(
+            FakeClade(
+                "Root",
+                [
+                    FakeClade("Short", branch_length=1.0),
+                    FakeClade(
+                        "Long",
+                        [FakeClade("Deep", branch_length=3.0)],
+                        branch_length=4.0,
+                    ),
+                ],
+            )
+        )
+        fake_phylo = types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
+        fake_bio = types.SimpleNamespace(Phylo=fake_phylo)
+
+        with mock.patch.dict(sys.modules, {"Bio": fake_bio}):
+            result = generator.generate_tree(
+                path,
+                tree_layout="vertical",
+                line_style="straight",
+                input_format="newick",
+                options=LayoutOptions(depth_spacing=10.0, branch_length_spacing=10.0),
+            )
+
+        coords = {node.label: node.y for node in result.nodes}
+        self.assertEqual(coords["Root"], 0.0)
+        self.assertAlmostEqual(coords["Short"], 10.0)
+        self.assertAlmostEqual(coords["Long"], 40.0)
+        self.assertAlmostEqual(coords["Deep"], 70.0)
+
+    def test_newick_without_branch_lengths_falls_back_to_depth_spacing(self) -> None:
+        """Verify Newick input still uses depth spacing when lengths are absent."""
+        generator = DendrogramGenerator()
+        _, path = write_text_file("(Short,(Deep)Long)Root;", filename="tree.nwk")
+        fake_tree = FakeTree(
+            FakeClade(
+                "Root",
+                [
+                    FakeClade("Short"),
+                    FakeClade("Long", [FakeClade("Deep")]),
+                ],
+            )
+        )
+        fake_phylo = types.SimpleNamespace(read=mock.Mock(return_value=fake_tree))
+        fake_bio = types.SimpleNamespace(Phylo=fake_phylo)
+
+        with mock.patch.dict(sys.modules, {"Bio": fake_bio}):
+            result = generator.generate_tree(
+                path,
+                tree_layout="vertical",
+                line_style="straight",
+                input_format="newick",
+                options=LayoutOptions(depth_spacing=10.0),
+            )
+
+        coords = {node.label: node.y for node in result.nodes}
+        self.assertEqual(coords["Root"], 0.0)
+        self.assertEqual(coords["Short"], 10.0)
+        self.assertEqual(coords["Long"], 10.0)
+        self.assertEqual(coords["Deep"], 20.0)
 
     def test_radial_split_includes_arc_segment(self) -> None:
         """Verify split radial routing includes an arc segment."""
